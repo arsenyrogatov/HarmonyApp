@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PMWConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": "-d Q:\\Music\\TestData"
+    }
+  }
+}

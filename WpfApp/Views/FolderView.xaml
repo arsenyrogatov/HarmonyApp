@@ -1,0 +1,442 @@
+﻿<Window x:Class="WpfApp.FolderView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp"
+        mc:Ignorable="d"
+        Title="Гармония" 
+        Height="400" 
+        Width="700" 
+        WindowStartupLocation="CenterScreen" 
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <Style x:Key="StartButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="ButtonGrid">
+
+                            <Border TextBlock.Foreground="{TemplateBinding Foreground}"
+                            x:Name="Border"
+                            CornerRadius="25">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#03a9f4" Offset="0"/>
+                                        <GradientStop Color="#f441a5" Offset="1.2"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter 
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                RecognizesAccessKey="True" />
+                            </Border>
+                            <Grid.Triggers>
+                                <EventTrigger RoutedEvent="FrameworkElement.MouseEnter">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+
+                                                <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.TargetProperty="(Panel.Background).
+                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.5">
+                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                         Value="#f441a5" />
+                                                </ColorAnimationUsingKeyFrames>
+                                                <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.TargetProperty="(Panel.Background).
+                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.5">
+                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
+                                         Value="#03a9f4" />
+                                                </ColorAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="FrameworkElement.MouseLeave">
+                                    <EventTrigger.Actions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+
+                                                <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.TargetProperty="(Panel.Background).
+                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.5">
+                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                         Value="#03a9f4" />
+                                                </ColorAnimationUsingKeyFrames>
+                                                <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.TargetProperty="(Panel.Background).
+                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.5">
+                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
+                                         Value="#f441a5" />
+                                                </ColorAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger.Actions>
+                                </EventTrigger>
+                            </Grid.Triggers>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="FontFamily" Value="Yu Gothic UI Semibold"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#fff"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="RecursiveSearchCheckBox" TargetType="{x:Type CheckBox}">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"/>
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <Setter Property="Cursor" Value="Hand"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <ControlTemplate.Resources>
+                            <Storyboard x:Key="OnChecking">
+                                <ColorAnimation To="#408fe1" 
+                                                Storyboard.TargetName="sliderback"
+                                    Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
+                                    Duration="0:0:0.1"/>
+                                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" 
+                                                               Storyboard.TargetName="slider" 
+                                                               Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+                                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="15"/>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                            <Storyboard x:Key="OnUnchecking">
+                                <ColorAnimation To="#e7edf4" 
+                                    Storyboard.TargetName="sliderback"
+                                    Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
+                                    Duration="0:0:0.1"/>
+                                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" 
+                                                               Storyboard.TargetName="slider" 
+                                                               Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
+                                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0"/>
+                                </DoubleAnimationUsingKeyFrames>
+                                <ThicknessAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="slider" Storyboard.TargetProperty="(FrameworkElement.Margin)">
+                                    <SplineThicknessKeyFrame KeyTime="00:00:00.1000000" Value="1,1,1,1"/>
+                                </ThicknessAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </ControlTemplate.Resources>
+
+                        <Border>
+                            <DockPanel x:Name="dockPanel">
+                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                              Content="{TemplateBinding Content}" 
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}" 
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" 
+                                              RecognizesAccessKey="True" 
+                                              VerticalAlignment="Center"/>
+                                <Border x:Name="sliderback"  Margin="0,5,0,5" Width="32" CornerRadius="8">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="#e7edf4"/>
+                                    </Border.Background>
+                                    <Border HorizontalAlignment="Left" 
+                                            x:Name="slider" 
+                                            Width="15" 
+                                            Height="15" 
+                                            CornerRadius="10" 
+                                            RenderTransformOrigin="0.5,0.5" 
+                                            Margin="1,1,1,1"
+                                            >
+                                        <Border.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                                <SkewTransform AngleX="0" AngleY="0"/>
+                                                <RotateTransform Angle="0"/>
+                                                <TranslateTransform X="0" Y="0"/>
+                                            </TransformGroup>
+                                        </Border.RenderTransform>
+                                        <Border.Background>
+                                            <SolidColorBrush Color="#EDEFF3"/>
+                                        </Border.Background>
+                                        <Border.Effect>
+                                            <DropShadowEffect Opacity="0.2" ShadowDepth="3"/>
+                                        </Border.Effect>
+                                    </Border>
+                                </Border>
+                            </DockPanel>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard Storyboard="{StaticResource OnUnchecking}" x:Name="OnUnchecking_BeginStoryboard"/>
+                                </Trigger.ExitActions>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard Storyboard="{StaticResource OnChecking}" x:Name="OnChecking_BeginStoryboard"/>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DeleteButton" TargetType="Button" >
+            <Setter Property="Background" Value="Transparent"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderThickness" Value="0"></Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Transparent"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Window.DataContext>
+        <local:FolderViewModel x:Name="folderViewModel" />
+    </Window.DataContext>
+    <Grid>
+        <Grid.Background>
+            <SolidColorBrush Color="{StaticResource WindowBackgroundColor}"></SolidColorBrush>
+        </Grid.Background>
+
+        <Grid Margin="20">
+            <Rectangle Margin="-5,-5,10,10">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="{StaticResource PanelsShadowLeft}"></SolidColorBrush>
+                </Rectangle.Fill>
+                <Rectangle.Effect>
+                    <BlurEffect Radius="20"></BlurEffect>
+                </Rectangle.Effect>
+            </Rectangle>
+            <Rectangle Margin="10,10,-5,-5">
+                <Rectangle.Fill>
+                    <SolidColorBrush Color="{StaticResource PanelsShadowRight}"></SolidColorBrush>
+                </Rectangle.Fill>
+                <Rectangle.Effect>
+                    <BlurEffect Radius="20"></BlurEffect>
+                </Rectangle.Effect>
+            </Rectangle>
+            <Border CornerRadius="30" Padding="10">
+                <Border.Background>
+                    <SolidColorBrush Color="{StaticResource PanelsBackgroundColor}"></SolidColorBrush>
+                </Border.Background>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="19*"/>
+                        <ColumnDefinition Width="11*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Content="Выбор папок для сканирования" 
+                           HorizontalAlignment="Left" 
+                           Margin="5,0,0,0" 
+                           VerticalAlignment="Center" 
+                           FontSize="18" 
+                           FontFamily="Yu Gothic UI Semibold" />
+
+                    <Border Grid.Row="1" 
+                            Margin="10,0,10,10"
+                            Background="#FFF7F8FB"
+                            CornerRadius="15">
+                        <Grid>
+                            <TextBlock Text="Папки не выбраны" 
+                                       FontFamily="Yu Gothic UI Semibold"
+                                       Visibility="{Binding PlugVisibility}"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"/>
+                            <DataGrid x:Name="FoldersDataGrid"
+                                      GridLinesVisibility="None" 
+                                      AutoGenerateColumns="False" 
+                                      Padding="10"
+                                      ItemsSource="{Binding Folders}"
+                                      CanUserResizeColumns="False"
+                                      CanUserReorderColumns="False"
+                                      HeadersVisibility="None" 
+                                      CanUserSortColumns="False" 
+                                      SelectionUnit="FullRow" 
+                                      CanUserAddRows="False" 
+                                      CanUserDeleteRows="False" 
+                                      CanUserResizeRows="False"
+                                      SelectedItem="{Binding ElementName=folderViewModel, Path=SelectedFolderItem, Mode=TwoWay}"
+                                      SelectionMode="Single">
+                                <DataGrid.Resources>
+                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource ScrollBarStyle}"/>
+                                </DataGrid.Resources>
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn IsReadOnly="True" Width="*">
+                                        <DataGridTemplateColumn.Header>
+                                            <TextBlock Text="Путь" Height="25" Foreground="#FF8E8E8E">
+                                            </TextBlock>
+                                        </DataGridTemplateColumn.Header>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock VerticalAlignment="Center" Text="{Binding Path=Path, Mode=OneWay}" FontFamily="Source Sans Pro Semibold" FontSize="13" Foreground="#FF2F2F2F"></TextBlock>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Width="20" 
+                                                x:Name="removeButton"
+                                                Style="{StaticResource DeleteButton}" 
+                                                Command="{Binding ElementName=folderViewModel, Path=DeleteCommand}"
+                                                Visibility="Hidden"
+                                                ToolTip="Удалить из списка">
+                                                    <Button.Content>
+                                                        <Border Background="#EDEFF3" x:Name="crossback" Width="16" Height="16" CornerRadius="8">
+                                                            <Canvas>
+                                                                <Path Stroke="#FFFF4747" 
+                                                              x:Name="cross"
+                                                              StrokeThickness="1.5" 
+                                                              Height="10" 
+                                                              Stretch="Fill" 
+                                                              Width="10"  
+                                                              HorizontalAlignment="Center" 
+                                                              VerticalAlignment="Center" 
+                                                              Margin="3,3,0,0">
+                                                                    <Path.Data>
+                                                                        <PathGeometry>
+                                                                            <PathGeometry.Figures>
+                                                                                <PathFigure StartPoint="0,0">
+                                                                                    <LineSegment Point="5,5"/>
+                                                                                </PathFigure>
+                                                                                <PathFigure StartPoint="0,5">
+                                                                                    <LineSegment Point="5,0"/>
+                                                                                </PathFigure>
+                                                                            </PathGeometry.Figures>
+                                                                        </PathGeometry>
+                                                                    </Path.Data>
+                                                                </Path>
+                                                            </Canvas>
+                                                            <Border.Effect>
+                                                                <DropShadowEffect Opacity="0.2" ShadowDepth="3"/>
+                                                            </Border.Effect>
+                                                        </Border>
+                                                    </Button.Content>
+                                                    <Button.Background>
+                                                        <SolidColorBrush Color="Transparent"></SolidColorBrush>
+                                                    </Button.Background>
+                                                    <Button.Triggers>
+                                                        <EventTrigger RoutedEvent="FrameworkElement.MouseLeave">
+                                                            <EventTrigger.Actions>
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.Target="{Binding ElementName=crossback}" 
+                                                    Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.2">
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                                    Value="#EDEFF3" />
+                                                                        </ColorAnimationUsingKeyFrames>
+                                                                        <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.Target="{Binding ElementName=cross}" 
+                                                    Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" 
+              
+                                                    Duration="0:0:0.2">
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                         Value="#FFFF4747" />
+                                                                        </ColorAnimationUsingKeyFrames>
+
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </EventTrigger.Actions>
+                                                        </EventTrigger>
+                                                        <EventTrigger RoutedEvent="FrameworkElement.MouseEnter">
+                                                            <EventTrigger.Actions>
+                                                                <BeginStoryboard>
+                                                                    <Storyboard>
+                                                                        <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.Target="{Binding ElementName=crossback}" 
+                                                    Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
+                                                    Storyboard.TargetName="Border" 
+                                                    Duration="0:0:0.2">
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                                                Value="#FFFF4747" />
+                                                                        </ColorAnimationUsingKeyFrames>
+                                                                        <ColorAnimationUsingKeyFrames 
+                                                    Storyboard.Target="{Binding ElementName=cross}" 
+                                                    Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" 
+                                             
+                                                    Duration="0:0:0.2">
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2"
+                                         Value="#FFFFFF" />
+                                                                        </ColorAnimationUsingKeyFrames>
+
+
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+
+                                                            </EventTrigger.Actions>
+                                                        </EventTrigger>
+                                                    </Button.Triggers>
+                                                </Button>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
+                                                        <Setter Property="Visibility" TargetName="removeButton" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Width="40">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox VerticalAlignment="Center" 
+                                                  IsChecked="{Binding Path=IsRecursive, UpdateSourceTrigger=PropertyChanged}" 
+                                                  Style="{StaticResource RecursiveSearchCheckBox}"
+                                                  Command="{Binding  ElementName=folderViewModel, Path=CalculateFilesCount}"
+                                                  ToolTip="Искать в подпапках"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Column="1" Grid.Row="1" Margin="10,-6,10,10" >
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="33"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="45"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel>
+                            <TextBlock Text="{Binding FoldersCount}" FontSize="31" Padding="0,0,4,0" Margin="0,-3,0,0" FontFamily="Yu Gothic UI Semibold"/>
+                            <TextBlock Text="папок" FontFamily="Yu Gothic UI Semibold" VerticalAlignment="Bottom"/>
+                            <TextBlock Text="{Binding FilesCount}" FontSize="31" Padding="0,0,4,0" Margin="5,-3,0,0" FontFamily="Yu Gothic UI Semibold"/>
+                            <TextBlock Text="файлов" FontFamily="Yu Gothic UI Semibold" VerticalAlignment="Bottom"/>
+                        </DockPanel>
+                        <StackPanel Grid.Row="1" Margin="0,8,0,0">
+                            <Button Content="Добавить папку"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Command="{Binding AddCommand}"/>
+                            <Button Content="Очистить список"
+                                    Style="{StaticResource ActionButtonStyle}"
+                                    Visibility="{Binding ClearButtonVisibility}"
+                                    Command="{Binding ClearCommand}" Margin="0,10,0,0"/>
+                        </StackPanel>
+                        <Button Content="Сканировать!" 
+                            Grid.Row="2" 
+                            Command="{Binding StartCommand}"
+                            Style="{StaticResource StartButtonStyle}"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+
+</Window>
