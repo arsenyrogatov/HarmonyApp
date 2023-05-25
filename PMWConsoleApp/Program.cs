@@ -1,68 +1,97 @@
 ﻿using PMW_lib;
+using PMWConsoleApp;
 using SoundFingerprinting.Builder;
 using SoundFingerprinting.Data;
 using SoundFingerprinting.Query;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 Stopwatch timer;
+ParallelOptions options = new();
 
-List<string> duplicates = new ();
+SynchronizedCollection<Audiofile> _matches = new();
 ReaderWriterLockSlim ReaderWriterLock = new();
 
-async Task ProcessFiles(IEnumerable<string> filePaths)
+async Task ProcessFiles(string folderPath)
 {
-    Console.WriteLine(filePaths.Count());
-    var tasks = new List<Task>();
-
-    foreach (var filePath in filePaths)
+    await Parallel.ForEachAsync(PMW_lib.PMWCore.GetEnumerableFiles(folderPath), options, async (filePath, token) =>
     {
-        tasks.Add(Task.Run(async () =>
+
+        AVHashes? hashes = await PMWFingerprinting.GetAVHashesAsync(filePath);
+        PMWFingerprinting.StoreAVHashes(filePath, hashes);
+        SoundFingerprinting.Query.AVQueryResult? queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
+
+        if (queryResult != null && queryResult.ResultEntries.Any())
         {
-            AVHashes? hashes = await PMWFingerprinting.GetAVHashesAsync(filePath);
-            PMWFingerprinting.StoreAVHashes(filePath, hashes);
-            SoundFingerprinting.Query.AVQueryResult? queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
-
-            if (queryResult != null && queryResult.ResultEntries.Any())
+            Audiofile parent = new(filePath);
+            List<Audiofile> matches = new();
+            //List<SoundFingerprinting.Query.ResultEntry> children = new();
+            foreach (var (entry, _) in queryResult.ResultEntries)
             {
-                List<SoundFingerprinting.Query.ResultEntry> children = new();
-                foreach (var (entry, _) in queryResult.ResultEntries)
+                if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
                 {
-                    if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d)
-                    {
-                            children.Add(entry);
-                    }
-                }
-
-                var childrenStr = children.Select(x => x.Track.Id);
-                if (children.Count > 0)
-                {
-                    ReaderWriterLock.EnterWriteLock();
-                    try
-                    {
-                        duplicates.RemoveAll(x => children.Any(y => y.Track.Id == x));
-                        duplicates.AddRange(childrenStr.OrderBy(x => x));
-                        duplicates.Add(" ");
-                    }
-                    finally
-                    {
-                        ReaderWriterLock.ExitWriteLock();
-                    }
+                    matches.Add(new(entry.Track.Id, parent, entry));
+                    //children.Add(entry);
                 }
             }
-        }));
-    }
 
-    // Ожидаем завершения всех операций
-    await Task.WhenAll(tasks);
+           if (matches.Any())
+            {
+                var AudiofilesToDelete = new List<Audiofile>();
+                ReaderWriterLock.EnterReadLock();
+                try
+                {
+                    var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
+                    if (duplicateParent is not null)
+                    {
+                        AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
+                        AudiofilesToDelete.Add(duplicateParent);
+                    }
+                }
+                finally
+                {
+                    ReaderWriterLock.ExitReadLock();
+                }
+                ReaderWriterLock.EnterWriteLock();
+                try
+                {
+                    foreach (var audiofile in AudiofilesToDelete)
+                        _matches.Remove(audiofile);
+                    _matches.Add(parent);
+                    foreach (var entry in matches)
+                        _matches.Add(entry);
+                }
+                finally
+                {
+                    ReaderWriterLock.ExitWriteLock();
+                }
+            }
+        }
+    });
 }
 
 timer = new Stopwatch();
 timer.Start();
-await ProcessFiles(PMWCore.GetEnumerableFiles(@"D:\Music\папка", false));
-timer.Stop();
-duplicates.ForEach(x => Console.WriteLine(x));
 
-var tmp = duplicates.Select(x => x != " ");
-Console.WriteLine($"tmpcount {tmp.Count()}");
-Console.WriteLine($"tmpcountdist {tmp.Distinct().Count()}");
+List<string> SelectedFolders = new() { @"Q:\Music\TestData — копия" };
+
+List<Task> tasks = new();
+foreach (var folder in SelectedFolders)
+{
+    tasks.Add(ProcessFiles(folder));
+}
+if (tasks.Count > 0)
+{
+    Task.Factory.ContinueWhenAll(tasks.ToArray(), para =>
+    {
+        foreach (var match in _matches)
+            Console.WriteLine(match.DisplayPath);
+    }).Wait();
+}
+
+//await ProcessFiles(PMWCore.GetEnumerableFiles(@"Q:\Music\TestData — копия", false));
+timer.Stop();
+
+
 Console.WriteLine(timer.Elapsed);
