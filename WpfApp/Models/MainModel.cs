@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Forms;
 
 namespace WpfApp
@@ -17,7 +18,8 @@ namespace WpfApp
     {
         private readonly CancellationTokenSource cancelTokenSource = new();
         //private ObservableCollection<Audiofile> _matches = new();
-        public ObservableCollection<Audiofile> _matches = new();
+        public ObservableCollection<Audiofile> _matches;
+        private readonly object _matchesLock = new ();
         private int processedFilesCount;
         private int _duplicatesCount;
         private readonly ParallelOptions options;
@@ -45,9 +47,11 @@ namespace WpfApp
         {
 
             options = new() { CancellationToken = cancelTokenSource.Token };
+            _matches = new();
             //PublicMatches = new (_matches);
             //_matches.Add(new Audiofile(@"C:\Users\ARSENY\Music\parentfile.mp3"));
             isCompleted = false;
+            BindingOperations.EnableCollectionSynchronization(_matches, _matchesLock);
             StartScan();
         }
         //начало сканирования 
@@ -68,6 +72,7 @@ namespace WpfApp
                     RaisePropertyChanged("ProgressCaption");
                     RaisePropertyChanged("SearchBarVisibility");
                     RaisePropertyChanged("ProgressBarVisibility");
+                    BindingOperations.DisableCollectionSynchronization(_matches);
                 });
             }
         }
@@ -142,88 +147,64 @@ namespace WpfApp
             }
         }
 
-        //добавление дубликатов в коллекцию
-        private void AddDuplicates(string parentPath, List<SoundFingerprinting.Query.ResultEntry> children)
-        {
-            App.Current.Dispatcher.BeginInvoke((Action)delegate
-            {
-                if (_matches.Any(x => (x._path == parentPath || children.Any(y => y.Track.Id == x._path))))
-                {
-
-                }
-                if (_matches.Any(x => (x.IsChild && (x.Parent._path == parentPath || children.Any(y => y.Track.Id == x.Parent._path)))))
-                {
-
-                }
-
-                Audiofile parent = new(parentPath);
-                List<Audiofile> matches = new() { parent };
-
-                foreach (var child in children.DistinctBy(x => x.Track.Id))
-                {
-                    matches.Add(new Audiofile(child.Track.Id, parent, child));
-                }
-
-                var maxRating = matches.Max(x => x.RatingValue);
-                maxRating = Math.Max(maxRating, parent.RatingValue);
-
-                matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
-                parent.IsSelected = parent.RatingValue != maxRating;
-
-                DuplicatesCount += matches.Count;
-                _matches.AddRange(matches);
-            });
-
-            RaisePropertyChanged(nameof(DuplicatesCount));
-            RaisePropertyChanged(nameof(DuplicatesSize));
-            RaisePropertyChanged("PlugVisibility");
-            RaisePropertyChanged("GridVisibility");
-        }
         //получение хэшей
         private async Task GetAVHashes(string folderpath, bool isRecursive)
         {
-            try
-            {
-                await Parallel.ForEachAsync(PMWCore.GetEnumerableFiles(folderpath, isRecursive), options, async (path, token) =>
+                await Parallel.ForEachAsync(PMW_lib.PMWCore.GetEnumerableFiles(folderpath), options, async (filePath, token) =>
                 {
                     token.ThrowIfCancellationRequested();
                     SoundFingerprinting.Data.AVHashes? hashes;
-                    try
-                    {
-                        hashes = await PMWFingerprinting.GetAVHashesAsync(path);
-                    }
-                    catch
-                    {
-                        return;
-                    }
-                    GC.Collect();
+                    hashes = await PMWFingerprinting.GetAVHashesAsync(filePath);
 
                     token.ThrowIfCancellationRequested();
-
-                    SoundFingerprinting.Query.AVQueryResult? queryResult;
-                    try
-                    {
-                        queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
-                    }
-                    catch
-                    {
-                        return;
-                    }
+                    PMWFingerprinting.StoreAVHashes(filePath, hashes);
+                    SoundFingerprinting.Query.AVQueryResult? queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
 
                     if (queryResult != null && queryResult.ResultEntries.Any())
                     {
-                        List<SoundFingerprinting.Query.ResultEntry> children = new();
+                        Audiofile parent = new(filePath);
+                        List<Audiofile> matches = new();
                         foreach (var (entry, _) in queryResult.ResultEntries)
                         {
-                            // output only those tracks that matched at least seconds.
-                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d)
+                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
                             {
-                                children.Add(entry);
+                                matches.Add(new(entry.Track.Id, parent, entry));
                             }
                         }
-                        if (children.Count > 0)
+
+                        if (matches.Any())
                         {
-                            Parallel.Invoke(() => AddDuplicates(path, children));
+                            var AudiofilesToDelete = new List<Audiofile>();
+
+                            lock (_matchesLock)
+                            {
+                                var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
+                                if (duplicateParent is not null)
+                                {
+                                    AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
+                                    AudiofilesToDelete.Add(duplicateParent);
+                                }
+
+                                foreach (var audiofile in AudiofilesToDelete)
+                                    _matches.Remove(audiofile);
+
+                                var maxRating = matches.Max(x => x.RatingValue);
+                                maxRating = Math.Max(maxRating, parent.RatingValue);
+
+                                matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
+                                parent.IsSelected = parent.RatingValue != maxRating;
+
+                                _matches.Add(parent);
+                                _matches.AddRange(matches);
+                                Parallel.Invoke(() =>
+                                {
+                                    RaisePropertyChanged(nameof(_matches));
+                                    RaisePropertyChanged(nameof(DuplicatesSize));
+                                    RaisePropertyChanged("PlugVisibility");
+                                    RaisePropertyChanged("GridVisibility");
+                                });
+        
+                            }
                         }
                     }
 
@@ -232,25 +213,8 @@ namespace WpfApp
                     RaisePropertyChanged(nameof(ProcessedFilesCount));
                     RaisePropertyChanged("ProgressText");
                     RaisePropertyChanged("ProgressCaption");
-
-                    try
-                    {
-                        PMWFingerprinting.StoreAVHashes(path, hashes);
-                    }
-                    catch
-                    {
-                        return;
-                    }
-
-                    GC.Collect();
-
-
                 });
-            }
-            catch (OperationCanceledException ex)
-            {
-                return;
-            }
+
         }
 
 

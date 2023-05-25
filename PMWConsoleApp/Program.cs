@@ -1,147 +1,97 @@
-﻿/*using PMW_lib;
+﻿using PMW_lib;
+using PMWConsoleApp;
+using SoundFingerprinting.Builder;
+using SoundFingerprinting.Data;
+using SoundFingerprinting.Query;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-var hashes = await PMWFingerprinting.GetAVHashesAsync(@"Q:\Music\tmp\Resonance.wav");
+Stopwatch timer;
+ParallelOptions options = new();
 
-Console.WriteLine($"\nФайл Q:\\Music\\tmp\\Home - Resonance.mp3\n");
-Console.WriteLine($"Отпечаток:");
+SynchronizedCollection<Audiofile> _matches = new();
+ReaderWriterLockSlim ReaderWriterLock = new();
 
-int k = 0;
-
-foreach (var a in hashes.Audio.OrderBy(x => x.SequenceNumber))
+async Task ProcessFiles(string folderPath)
 {
-    Console.WriteLine($"\nId: {a.SequenceNumber}");
-    Console.WriteLine($"Начало: {a.StartsAt} сек");
-    Console.WriteLine("Хэш значений:");
-    string str = "";
-    for (int i = 0; i < 20; i++)
+    await Parallel.ForEachAsync(PMW_lib.PMWCore.GetEnumerableFiles(folderPath), options, async (filePath, token) =>
     {
-        if (i % 5 == 0 && i != 0)
+
+        AVHashes? hashes = await PMWFingerprinting.GetAVHashesAsync(filePath);
+        PMWFingerprinting.StoreAVHashes(filePath, hashes);
+        SoundFingerprinting.Query.AVQueryResult? queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
+
+        if (queryResult != null && queryResult.ResultEntries.Any())
         {
-            Console.WriteLine(str);
-            str = a.HashBins[i].ToString() + " ";
+            Audiofile parent = new(filePath);
+            List<Audiofile> matches = new();
+            //List<SoundFingerprinting.Query.ResultEntry> children = new();
+            foreach (var (entry, _) in queryResult.ResultEntries)
+            {
+                if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
+                {
+                    matches.Add(new(entry.Track.Id, parent, entry));
+                    //children.Add(entry);
+                }
+            }
+
+           if (matches.Any())
+            {
+                var AudiofilesToDelete = new List<Audiofile>();
+                ReaderWriterLock.EnterReadLock();
+                try
+                {
+                    var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
+                    if (duplicateParent is not null)
+                    {
+                        AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
+                        AudiofilesToDelete.Add(duplicateParent);
+                    }
+                }
+                finally
+                {
+                    ReaderWriterLock.ExitReadLock();
+                }
+                ReaderWriterLock.EnterWriteLock();
+                try
+                {
+                    foreach (var audiofile in AudiofilesToDelete)
+                        _matches.Remove(audiofile);
+                    _matches.Add(parent);
+                    foreach (var entry in matches)
+                        _matches.Add(entry);
+                }
+                finally
+                {
+                    ReaderWriterLock.ExitWriteLock();
+                }
+            }
         }
-        else
-        {
-            str += a.HashBins[i].ToString() + " ";
-        }
-    }
-    Console.WriteLine(str);
-    if (++k == 3) break;
+    });
 }
 
-Console.ReadKey();*/
+timer = new Stopwatch();
+timer.Start();
 
-/*using System;
-using System.IO;
-using System.Numerics;
-using MathNet.Numerics;
-using System.Windows.Forms;
-using MathNet.Numerics.IntegralTransforms;
-using NAudio.Wave;
-using OxyPlot;
-using OxyPlot.Axes;
-using OxyPlot.Series;
-using OxyPlot.WindowsForms;
-using System.Drawing;
+List<string> SelectedFolders = new() { @"Q:\Music\TestData — копия" };
 
-string audioFilePath = @"Q:\Music\TestData\104 - WHO.mp3";
-WaveFileReader reader = new WaveFileReader(audioFilePath);
-float[] audioData = new float[reader.Length / 4];
-reader.Read(audioData.Select(x => Convert.ToByte(x)).ToArray(), 0, audioData.Length);
-int sampleRate = reader.WaveFormat.SampleRate;
-reader.Close();
-
-Complex32[] spectrum = new Complex32[audioData.Length];
-for (int i = 0; i < audioData.Length; i++)
+List<Task> tasks = new();
+foreach (var folder in SelectedFolders)
 {
-    spectrum[i] = new Complex32(audioData[i], 0);
+    tasks.Add(ProcessFiles(folder));
 }
-Fourier.Forward(spectrum, FourierOptions.NoScaling);
-
-double[] dB = new double[audioData.Length / 2];
-double[] freqs = new double[audioData.Length / 2];
-double refLevel = 1.0;
-for (int i = 0; i < audioData.Length / 2; i++)
+if (tasks.Count > 0)
 {
-    double re = spectrum[i].Real;
-    double im = spectrum[i].Imaginary;
-    double mag = Math.Sqrt(re * re + im * im);
-    double power = mag * mag;
-    dB[i] = 10 * Math.Log10(power / refLevel);
-    freqs[i] = (double)i / audioData.Length * sampleRate / 2.0;
+    Task.Factory.ContinueWhenAll(tasks.ToArray(), para =>
+    {
+        foreach (var match in _matches)
+            Console.WriteLine(match.DisplayPath);
+    }).Wait();
 }
 
-var plotModel = new PlotModel();
-plotModel.Title = "Spectrogram";
+//await ProcessFiles(PMWCore.GetEnumerableFiles(@"Q:\Music\TestData — копия", false));
+timer.Stop();
 
-var dBseries = new LineSeries();
-for (int i = 0; i < audioData.Length / 2; i++)
-{
-    dBseries.Points.Add(new DataPoint(freqs[i], dB[i]));
-}
-plotModel.Series.Add(dBseries);
 
-var xAxis = new LinearAxis();
-xAxis.Title = "Frequency (Hz)";
-xAxis.Position = AxisPosition.Bottom;
-plotModel.Axes.Add(xAxis);
-
-var yAxis = new LinearAxis();
-yAxis.Title = "dB";
-yAxis.Position = AxisPosition.Left;
-plotModel.Axes.Add(yAxis);
-
-var plotView = new PlotView();
-plotView.Model = plotModel;
-plotView.Dock = DockStyle.Fill;
-Bitmap bitmap = new Bitmap(Convert.ToInt32(xAxis.Maximum), Convert.ToInt32(yAxis.Maximum));
-plotView.DrawToBitmap(bitmap, new Rectangle(0,0, Convert.ToInt32(xAxis.Maximum), Convert.ToInt32(yAxis.Maximum)));
-bitmap.Save("file.png", System.Drawing.Imaging.ImageFormat.Png);*/
-
-/*Console.WriteLine("Поиск дубликатов в Q:\\Music\\TestData");
-Console.WriteLine("Обнаружено 17 музыкальных файлов\n");
-
-Console.WriteLine(@"Q:\Music\TestData\BATO & 104 - WHO.mp3");
-Console.WriteLine(@"Q:\Music\TestData\104 - WHO.mp3 Начало совпадения: 00:01:22");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Drake - God's Plan.mp3");
-Console.WriteLine(@"Q:\Music\TestData\дрейк гадсплен.mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Famous Dex - JAPAN (original).mp3");
-Console.WriteLine(@"Q:\Music\TestData\Famous Dex - JAPAN (white noise).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\French Montana feat Swae Lee - Unforgetable (32000).mp3");
-Console.WriteLine(@"Q:\Music\TestData\French Montana feat Swae Lee - Unforgetable (48000).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Home - Resonance.mp3");
-Console.WriteLine(@"Q:\Music\TestData\Home - Resonance.wav Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Kid Cudi - Day 'n' Nite (128).mp3");
-Console.WriteLine(@"Q:\Music\TestData\Kid Cudi - Day 'n' Nite (320).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Lana Del Rey - Summertime Sadness (original).mp3");
-Console.WriteLine(@"Q:\Music\TestData\Lana Del Rey - Summertime Sadness (speed).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine(@"Q:\Music\TestData\Lana Del Rey - Summertime Sadness (slow ).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-Console.WriteLine(@"Q:\Music\TestData\Mac DeMarco - Chamber of Reflection.mp3");
-Console.WriteLine(@"Q:\Music\TestData\Mac DeMarco - Chamber of Reflection (1).mp3 Начало совпадения: 00:00:00");
-Console.WriteLine();
-
-Console.WriteLine("\nСканирование завершено! Найдено 17 дубликатов");
-Console.WriteLine(@"Отчет сохранен в файл: C:\Users\ARSENY\Диплом\Гармония_сканирование_14.04.23_02-40.txt");*/
-
-/*Console.WriteLine($"Файлы (4) будут удалены. Продолжить? (Д\\Н): д");
-Console.WriteLine("Файлы удалены!");
-Console.WriteLine("\n"+@"Отчет сохранен в файл: C:\Users\ARSENY\Диплом\Гармония_сканирование_18.04.23_15-10.txt");*/
-
-Console.WriteLine(@"C:\Users\ARSENY\Диплом>Гармония.exe --help");
-Console.WriteLine("Параметры:");
-Console.WriteLine("\t'-c'  или '--console'\tзапуск со стандартными параметрами");
-Console.WriteLine("\t'-d'  или '--dir'\tпуть к директории, в которой необходимо произвести поиск дубликатов");
-Console.WriteLine("\t'-r'  или '--recursive'\tвключение поиска дубликатов во всех поддиректориях указанной папки");
-Console.WriteLine("\t'-o'  или '--output'\tвыбор директории для сохранения отчета");
-Console.WriteLine("\t'-m'  или '--move'\tперемещение найденных дубликатов с меньшим рейтингом в указанную директорию");
-Console.WriteLine("\t'-rm' или '--remove'\tудаление найденных дубликатов с меньшим рейтингом");
-Console.WriteLine("\t'-f'  или '--force'\tотключение подтверждения перед перемещением или удалением");
-Console.WriteLine("\t'-h'  или '--help'\tотображение справки по использованию приложения");
+Console.WriteLine(timer.Elapsed);
