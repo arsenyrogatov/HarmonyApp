@@ -1,49 +1,54 @@
 ﻿using PMW_lib;
+using SoundFingerprinting.Builder;
 using SoundFingerprinting.Data;
 using SoundFingerprinting.Query;
 using System.Diagnostics;
 
 Stopwatch timer;
 
+List<string> duplicates = new ();
+ReaderWriterLockSlim ReaderWriterLock = new();
+
 async Task ProcessFiles(IEnumerable<string> filePaths)
 {
+    Console.WriteLine(filePaths.Count());
     var tasks = new List<Task>();
 
     foreach (var filePath in filePaths)
     {
         tasks.Add(Task.Run(async () =>
         {
-            
-            // Получаем акустический отпечаток асинхронно
             AVHashes? hashes = await PMWFingerprinting.GetAVHashesAsync(filePath);
-
-            // Сравниваем отпечатки
-            Console.WriteLine($"%{filePath} {timer.Elapsed}");
+            PMWFingerprinting.StoreAVHashes(filePath, hashes);
             SoundFingerprinting.Query.AVQueryResult? queryResult = await PMWFingerprinting.CompareAVHashesAsync(hashes);
 
             if (queryResult != null && queryResult.ResultEntries.Any())
             {
-                // Обработка совпадений и вывод на экран
                 List<SoundFingerprinting.Query.ResultEntry> children = new();
                 foreach (var (entry, _) in queryResult.ResultEntries)
                 {
-                    // output only those tracks that matched at least seconds.
                     if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d)
                     {
-                        children.Add(entry);
+                            children.Add(entry);
                     }
                 }
+
+                var childrenStr = children.Select(x => x.Track.Id);
                 if (children.Count > 0)
                 {
-                    Console.WriteLine(filePath);
-                    foreach (var child in children)
-                        Console.WriteLine($"\t{child.Track.Id}");
-                    Console.WriteLine("\n");
+                    ReaderWriterLock.EnterWriteLock();
+                    try
+                    {
+                        duplicates.RemoveAll(x => children.Any(y => y.Track.Id == x));
+                        duplicates.AddRange(childrenStr.OrderBy(x => x));
+                        duplicates.Add(" ");
+                    }
+                    finally
+                    {
+                        ReaderWriterLock.ExitWriteLock();
+                    }
                 }
             }
-
-            // Сохраняем отпечаток в базу данных
-            PMWFingerprinting.StoreAVHashes(filePath, hashes);
         }));
     }
 
@@ -53,4 +58,11 @@ async Task ProcessFiles(IEnumerable<string> filePaths)
 
 timer = new Stopwatch();
 timer.Start();
-await ProcessFiles(PMWCore.GetEnumerableFiles(@"Q:\Music\TestData — копия", false));
+await ProcessFiles(PMWCore.GetEnumerableFiles(@"D:\Music\папка", false));
+timer.Stop();
+duplicates.ForEach(x => Console.WriteLine(x));
+
+var tmp = duplicates.Select(x => x != " ");
+Console.WriteLine($"tmpcount {tmp.Count()}");
+Console.WriteLine($"tmpcountdist {tmp.Distinct().Count()}");
+Console.WriteLine(timer.Elapsed);

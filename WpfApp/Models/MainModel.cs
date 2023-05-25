@@ -15,6 +15,7 @@ namespace WpfApp
 {
     public class MainModel : BindableBase, INotifyPropertyChanged
     {
+        private readonly ReaderWriterLockSlim ReaderWriterLock = new();
         private readonly CancellationTokenSource cancelTokenSource = new();
         //private ObservableCollection<Audiofile> _matches = new();
         public ObservableCollection<Audiofile> _matches = new();
@@ -196,9 +197,17 @@ namespace WpfApp
                     {
                         return;
                     }
-                    GC.Collect();
 
                     token.ThrowIfCancellationRequested();
+
+                    try
+                    {
+                        PMWFingerprinting.StoreAVHashes(path, hashes);
+                    }
+                    catch
+                    {
+                        return;
+                    }
 
                     SoundFingerprinting.Query.AVQueryResult? queryResult;
                     try
@@ -212,18 +221,45 @@ namespace WpfApp
 
                     if (queryResult != null && queryResult.ResultEntries.Any())
                     {
-                        List<SoundFingerprinting.Query.ResultEntry> children = new();
+                        Audiofile parent = new(path);
+                        List<Audiofile> matches = new();
                         foreach (var (entry, _) in queryResult.ResultEntries)
                         {
                             // output only those tracks that matched at least seconds.
                             if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d)
                             {
-                                children.Add(entry);
+                                if (entry.Track.Id != path && !matches.Any(x => x._path == entry.Track.Id))
+                                    matches.Add(new Audiofile(entry.Track.Id, parent, entry));
                             }
                         }
-                        if (children.Count > 0)
+                        if (matches.Any())
                         {
-                            Parallel.Invoke(() => AddDuplicates(path, children));
+                            
+                            //Parallel.Invoke(() => AddDuplicates(path, children));
+
+                            
+
+                            var maxRating = matches.Max(x => x.RatingValue);
+                            maxRating = Math.Max(maxRating, parent.RatingValue);
+
+                            matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
+                            parent.IsSelected = parent.RatingValue != maxRating;
+
+                            DuplicatesCount += matches.Count;
+
+                            ReaderWriterLock.EnterWriteLock();
+                            try
+                            {
+                                _matches.RemoveAll(x => matches.Any(y => y.Track.Id == x));
+                                duplicates.AddRange(childrenStr.OrderBy(x => x));
+                                duplicates.Add(" ");
+                            }
+                            finally
+                            {
+                                ReaderWriterLock.ExitWriteLock();
+                            }
+
+                            _matches.AddRange(matches);
                         }
                     }
 
@@ -232,19 +268,6 @@ namespace WpfApp
                     RaisePropertyChanged(nameof(ProcessedFilesCount));
                     RaisePropertyChanged("ProgressText");
                     RaisePropertyChanged("ProgressCaption");
-
-                    try
-                    {
-                        PMWFingerprinting.StoreAVHashes(path, hashes);
-                    }
-                    catch
-                    {
-                        return;
-                    }
-
-                    GC.Collect();
-
-
                 });
             }
             catch (OperationCanceledException ex)

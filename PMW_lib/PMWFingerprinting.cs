@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@ namespace PMW_lib
     public static class PMWFingerprinting
     {
         private static LMDBModelService? modelService;
-        private static InMemoryModelService InMemoryModelService = new InMemoryModelService();
+        public static InMemoryModelService InMemoryModelService = new InMemoryModelService();
         private static string? DbPath;
         private static readonly NAudioService audioService = new ();
 
@@ -68,7 +69,21 @@ namespace PMW_lib
                                              .From(hashes)
                                              .UsingServices(modelService)
                                              .Query();*/
-
+           /* Console.WriteLine($"model elements: {InMemoryModelService.GetTrackIds().Count().ToString()}");
+            foreach (var hash in InMemoryModelService.GetTrackIds()) 
+            {
+                Console.WriteLine($"\t{hash}");
+            }*/
+           /* var result = await QueryCommandBuilder.Instance
+                                             .BuildQueryCommand()
+                                             .From(hashes)
+                                             .UsingServices(InMemoryModelService)
+                                             .Query();*/
+           /* Console.WriteLine($"result: {result.ResultEntries.Count()}");
+            foreach (var res in result.ResultEntries)
+            {
+                Console.WriteLine($"\t{res.TrackId}");
+            }*/
             return await QueryCommandBuilder.Instance
                                              .BuildQueryCommand()
                                              .From(hashes)
@@ -78,6 +93,7 @@ namespace PMW_lib
 
         public static void StoreAVHashes (string path, AVHashes hashes)
         {
+            //Console.WriteLine(InMemoryModelService.GetTrackIds().Count().ToString());
             var TrackId = path;
             var track = new TrackInfo(TrackId, String.Empty, String.Empty);
             //modelService.Insert(track, hashes);
