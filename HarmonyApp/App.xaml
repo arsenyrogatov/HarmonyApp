@@ -8,9 +8,11 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles\ColorsDictionary.xaml"/>
                 <ResourceDictionary Source="Styles\ScrollViewerStylesDictionary.xaml"/>
-                <ResourceDictionary Source="Styles\ButtonStyleDictionary.xaml"/>
+                <ResourceDictionary Source="Styles\ButtonStylesDictionary.xaml"/>
+                <ResourceDictionary Source="Styles\TextBoxStylesDictionary.xaml"/>
                 <ResourceDictionary Source="Styles\DataGridStylesDictionary.xaml"/>
                 <ResourceDictionary Source="Styles\ProgressBarStylesDictionary.xaml"/>
+                <ResourceDictionary Source="Styles\CheckBoxStylesDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

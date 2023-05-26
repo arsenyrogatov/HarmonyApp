@@ -75,6 +75,7 @@ namespace HarmonyApp.Models
                 _audiofileTags.Tag.Comment = Comment;
 
             _audiofileTags.Save();
+            System.Windows.MessageBox.Show("d");
         }
     }
 }

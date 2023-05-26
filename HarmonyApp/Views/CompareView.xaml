@@ -3,16 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:viewmodels="clr-namespace:HarmonyApp.ViewModels" 
-        xmlns:converters="clr-namespace:HarmonyApp.Converters" 
+        xmlns:v="clr-namespace:HarmonyApp.ViewModels" 
+        xmlns:c="clr-namespace:HarmonyApp.Converters" 
         xmlns:X="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="Гармония" MinHeight="740" MaxHeight="740" Width="810">
+        Title="Гармония"
+        WindowStartupLocation="CenterScreen"
+        MinHeight="720"
+        MaxHeight="720"
+        MinWidth="840" 
+        Width="910">
     <Window.Resources>
-        <converters:NullImageConverter x:Key="nullImageConverter"/>
+        <c:NullImageConverter x:Key="nullImageConverter"/>
     </Window.Resources>
     <Window.DataContext>
-        <viewmodels:CompareViewModel/>
+        <v:CompareViewModel/>
     </Window.DataContext>
     <Grid>
         <Grid.Background>
@@ -36,17 +41,16 @@
                 </Rectangle.Effect>
             </Rectangle>
             <Border x:Name="mainBorder" CornerRadius="30" Margin="0,0,0,0" Padding="10">
-
                 <Border.Background>
                     <SolidColorBrush Color="{StaticResource PanelsBackgroundColor}"></SolidColorBrush>
                 </Border.Background>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="45"/>
-                        <RowDefinition MinHeight="300"/>
+                        <RowDefinition MinHeight="295"/>
                     </Grid.RowDefinitions>
                     <Label Content="Сравнение дубликатов" 
-                            HorizontalAlignment="Left" 
+                           HorizontalAlignment="Left" 
                            Margin="5,0,0,0" 
                            VerticalAlignment="Center" 
                            FontSize="18" 
@@ -59,140 +63,139 @@
                         <ItemsControl ItemsSource="{Binding PublicAudiofiles}" >
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Height="550"/>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Height="547"/>
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="5,0,0,0" 
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="5,0,0,0" 
                                                 Padding="10"
-                                                        Width="400" 
-                                                        Background="#FFF7F8FB"
-                                                        CornerRadius="15">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="100"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <Border Margin="10,10,10,10" 
+                                                Width="400" 
+                                                Background="#FFF7F8FB"
+                                                CornerRadius="20">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="100"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Border Margin="10,10,10,10" 
                                                                 HorizontalAlignment="Center" 
                                                                 VerticalAlignment="Top" 
                                                                 CornerRadius="10"
                                                                 Background="#FFF7F8FB">
-                                                    <Grid>
-                                                        <TextBlock Text="Нет обложки"
+                                                <Grid>
+                                                    <TextBlock Text="Нет обложки"
                                                                            FontFamily="Yu Gothic UI Semibold"
                                                                            Foreground="#888"
                                                                            VerticalAlignment="Center"
                                                                            HorizontalAlignment="Center"/>
-                                                        <Border Width="80" Height="80" CornerRadius="10"
+                                                    <Border Width="80" Height="80" CornerRadius="10"
                                                                         BorderThickness="0.4"
                                                                         BorderBrush="Black">
-                                                            <Border.Background>
-                                                                <ImageBrush Stretch="Fill" ImageSource="{Binding Path=TrackCover, Converter={StaticResource nullImageConverter}}"></ImageBrush>
-                                                            </Border.Background>
-                                                        </Border>
-                                                    </Grid>
-                                                </Border>
-                                                <StackPanel Grid.Row="1"
+                                                        <Border.Background>
+                                                            <ImageBrush Stretch="Fill" ImageSource="{Binding Path=TrackCover, Converter={StaticResource nullImageConverter}}"></ImageBrush>
+                                                        </Border.Background>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                            <StackPanel Grid.Row="1"
                                                             
                                                                     Margin="5,5,5,0" 
                                                                     CanVerticallyScroll="True" 
                                                                     ScrollViewer.CanContentScroll="True">
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Имя файла" 
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Имя файла" 
                                                        Margin="0,0,5,0" 
                                                        Width="120" 
                                                        VerticalAlignment="Center" 
                                                        FontWeight="Normal" 
                                                        FontStyle="Normal" 
                                                        FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding FileName}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Рейтинг" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Rating}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Похожесть" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Similarity}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Начало совпадения" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding MatchedAt}"/>
-                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding FileName}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Рейтинг" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Rating}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Похожесть" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Similarity}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Начало совпадения" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding MatchedAt}"/>
+                                                </DockPanel>
 
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Продолжительность" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Duration}"/>
-                                                    </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Продолжительность" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Duration}"/>
+                                                </DockPanel>
 
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Размер" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Size}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Создан" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding CreationTime}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Изменен" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding WriteTime}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Скорость потока" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Bitrate}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Частота" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding SampleRate}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Каналы" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding Channels}"/>
-                                                    </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Размер" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Size}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Создан" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding CreationTime}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Изменен" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding WriteTime}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Скорость потока" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Bitrate}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Частота" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding SampleRate}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Каналы" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding Channels}"/>
+                                                </DockPanel>
 
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="№ трека" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackNum}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Название" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackName}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Исполнители" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackArtist}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Альбом" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackAlbum}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Жанры" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackGenre}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Год" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackYear}"/>
-                                                    </DockPanel>
-                                                    <DockPanel Margin="0,0,0,5">
-                                                        <TextBlock Text="Комментарий" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
-                                                        <TextBlock Text="{Binding TrackComment}"/>
-                                                    </DockPanel>
-                                                    <Button Content="Создать спектрограмму" 
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="№ трека" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackNum}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Название" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackName}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Исполнители" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackArtist}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Альбом" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackAlbum}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Жанры" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackGenre}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Год" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackYear}"/>
+                                                </DockPanel>
+                                                <DockPanel Margin="0,0,0,5">
+                                                    <TextBlock Text="Комментарий" Margin="0,0,5,0" VerticalAlignment="Center" Width="120" FontFamily="Segoe UI Semibold"/>
+                                                    <TextBlock Text="{Binding TrackComment}"/>
+                                                </DockPanel>
+                                                <Button Content="Создать спектрограмму" 
                                                                     Style="{StaticResource ActionButtonStyle}"  
                                                                     Command="{Binding CreateSpectrogram}"
+                                                                    Height="26"
                                                                     Grid.Column="0" 
-                                                                    Margin="5,10,5,5"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-
-                            </ItemsControl>
-
+                                                                    Margin="0,10,0,5"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
                 </Grid>
             </Border>

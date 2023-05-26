@@ -5,28 +5,54 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HarmonyApp.Views"
         mc:Ignorable="d"
-        Title="Гармония" Height="350" Width="800" WindowStyle="ToolWindow">
+        Title="Гармония" 
+        Height="350" 
+        Width="800" 
+        WindowStyle="ToolWindow" 
+        WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="Масштабирование изображения: " VerticalAlignment="Center"/>
-            <Slider x:Name="slider" Minimum="0.3" Maximum="8" Value="1" SmallChange="0.1" LargeChange="0.5" HorizontalAlignment="Left" VerticalAlignment="Top" ValueChanged="slider_ValueChanged" Width="500"/>
+        <StackPanel Grid.Row="0" 
+                    Orientation="Horizontal" 
+                    Margin="10">
+            <TextBlock Text="Масштабирование изображения: " 
+                       VerticalAlignment="Center" 
+                       Margin="0,-5,0,0"/>
+            <Slider x:Name="ScaleSlider" 
+                    Minimum="0.3" 
+                    Maximum="8" 
+                    Value="1" 
+                    LargeChange="0.5" 
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Top" 
+                    ValueChanged="ScaleSlider_ValueChanged" 
+                    Width="500" 
+                    IsSnapToTickEnabled="True" TickFrequency="0.1"/>
+            <TextBlock x:Name="SliderValue" Text="1x"/>
         </StackPanel>
-        
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Margin="10">
-            <Canvas x:Name="canvas">
-                <Canvas.Background>
-                    <VisualBrush  >
-                        <VisualBrush.Visual>
-                            <Image x:Name="image" Margin="5">
-                            </Image>
-                        </VisualBrush.Visual>
-                    </VisualBrush>
-                </Canvas.Background>
-            </Canvas>
-        </ScrollViewer>
+        <Grid Grid.Row="1">
+            <TextBlock x:Name="Plug"
+                       Text="Построение спектрограммы..." 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Auto" 
+                          Margin="10"
+                          Style="{StaticResource ScrollViewerStyle}">
+                <Canvas x:Name="SpectrogramCanvas">
+                    <Canvas.Background>
+                        <VisualBrush>
+                            <VisualBrush.Visual>
+                                <Image x:Name="SpectrogramImage" 
+                                       Margin="5"/>
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </Canvas.Background>
+                </Canvas>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>

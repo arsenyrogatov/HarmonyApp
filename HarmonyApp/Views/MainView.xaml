@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:HarmonyApp"
-        xmlns:viewmodels="clr-namespace:HarmonyApp.ViewModels"
+        xmlns:v="clr-namespace:HarmonyApp.ViewModels"
         xmlns:p="clr-namespace:HarmonyApp.Proxy"
-        xmlns:converters="clr-namespace:HarmonyApp.Converters"
+        xmlns:c="clr-namespace:HarmonyApp.Converters"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Гармония" 
@@ -17,295 +17,12 @@
         MinWidth="1000"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <Style x:Key="CancelButtonStyle" TargetType="Button">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="ButtonGrid">
-
-                            <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-                            x:Name="Border"
-                            CornerRadius="12">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#fd281d" Offset="0"/>
-                                        <GradientStop Color="#fcc63d" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <ContentPresenter 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True" />
-                            </Border>
-                            <Grid.Triggers>
-                                <EventTrigger RoutedEvent="FrameworkElement.MouseEnter">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
-                                         Value="#fcc63d" />
-                                                </ColorAnimationUsingKeyFrames>
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
-                                         Value="#fd281d" />
-                                                </ColorAnimationUsingKeyFrames>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="FrameworkElement.MouseLeave">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
-                                         Value="#fd281d" />
-                                                </ColorAnimationUsingKeyFrames>
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
-                                         Value="#fcc63d" />
-                                                </ColorAnimationUsingKeyFrames>
-
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                            </Grid.Triggers>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="FontFamily" Value="{Binding Source={x:Static SystemFonts.CaptionFontFamily}}"/>
-            <Setter Property="Foreground" Value="#FFF"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style x:Key="SearchButtonStyle" TargetType="Button">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="ButtonGrid">
-
-                            <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-                            x:Name="Border"
-                            CornerRadius="12">
-                                <Border.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#26A96C" Offset="0"/>
-                                        <GradientStop Color="#2BC016" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Border.Background>
-                                <ContentPresenter 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True" />
-                            </Border>
-                            <Grid.Triggers>
-                                <EventTrigger RoutedEvent="FrameworkElement.MouseEnter">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
-                                         Value="#26A96C" />
-                                                </ColorAnimationUsingKeyFrames>
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
-                                         Value="#2BC016" />
-                                                </ColorAnimationUsingKeyFrames>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="FrameworkElement.MouseLeave">
-                                    <EventTrigger.Actions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[0].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.2"
-                                         Value="#2BC016" />
-                                                </ColorAnimationUsingKeyFrames>
-                                                <ColorAnimationUsingKeyFrames 
-                                                    Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)" 
-                                                    Storyboard.TargetName="Border" 
-                                                    Duration="0:0:0.5">
-                                                    <EasingColorKeyFrame KeyTime="0:0:0.5"
-                                         Value="#26A96C" />
-                                                </ColorAnimationUsingKeyFrames>
-
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger.Actions>
-                                </EventTrigger>
-                            </Grid.Triggers>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="FontFamily" Value="{Binding Source={x:Static SystemFonts.CaptionFontFamily}}"/>
-            <Setter Property="Foreground" Value="#FFF"/>
-            <Setter Property="Cursor" Value="Hand"/>
-        </Style>
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="ButtonGrid">
-
-                            <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-                            x:Name="Border"
-                            CornerRadius="12">
-                                <Border.Background>
-                                    <SolidColorBrush Color="#408fe1">
-                                    </SolidColorBrush>
-                                </Border.Background>
-                                <ContentPresenter 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Foreground" Value="#FFF"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Height" Value="26"/>
-            <Setter Property="FontFamily" Value="Yu Gothic UI Semibold"/>
-        </Style>
-        <Style x:Key="ExtButtonStyle" TargetType="Button">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Grid x:Name="ButtonGrid">
-                            <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-                            x:Name="Border"
-                            CornerRadius="12">
-                                <Border.Background>
-                                    <SolidColorBrush Color="Transparent">
-                                    </SolidColorBrush>
-                                </Border.Background>
-                                <ContentPresenter 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                RecognizesAccessKey="True" />
-                            </Border>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Foreground" Value="#000"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontStyle" Value="Italic"/>
-        </Style>
-        <Style x:Key="Body_Content_DataGrid_Centering"
-        TargetType="{x:Type DataGridCell}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type DataGridCell}">
-                        <Grid Background="{TemplateBinding Background}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Foreground" Value="#000"/>
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="BorderThickness" Value="0" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="SearchTextBoxStyle" TargetType="TextBox">
-
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type TextBoxBase}">
-                        <Border Name="Border" 
-                                    BorderThickness="0" 
-                                    CornerRadius="12" 
-                                    Background="#FFF7F8FB"
-                                    Padding="10,0,10,0">
-                            <Grid>
-                                <ScrollViewer x:Name="PART_ContentHost" FontFamily="Yu Gothic UI Semibold"/>
-                            </Grid>
-                        </Border>
-                    </ControlTemplate>
-
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="CheckBoxColumnStyle" TargetType="CheckBox">
-            <Setter Property="Foreground" Value="#408fe1" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#FFC5C5C5" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type CheckBox}">
-                        <Grid Height="15" Width="15">
-                            <Ellipse x:Name="OuterCircle" 
-                                     Fill="{TemplateBinding Background}" 
-                                     Stroke="{TemplateBinding BorderBrush}" 
-                                     StrokeThickness="{TemplateBinding BorderThickness}" 
-                                     />
-                            <Ellipse x:Name="InnerCircle" 
-                                     Margin="3" 
-                                     Fill="{TemplateBinding Foreground}" 
-                                     Opacity="0">
-                            </Ellipse>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="InnerCircle" 
-                                        Property="Opacity" 
-                                        Value="1" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <converters:NullImageConverter x:Key="nullImageConverter"/>
-        <converters:BoolFontWeightConverter x:Key="boolFontWeightConverter"/>
+        <c:NullImageConverter x:Key="nullImageConverter"/>
+        <c:BoolFontWeightConverter x:Key="boolFontWeightConverter"/>
         <p:BindingProxy x:Key="proxy" DataContext="{Binding}"/>
     </Window.Resources>
     <Window.DataContext>
-        <viewmodels:MainViewModel/>
+        <v:MainViewModel/>
     </Window.DataContext>
     <Grid>
         <Grid.Background>
@@ -467,7 +184,7 @@
                                      FontFamily="Yu Gothic UI Semibold" 
                                      Visibility="{Binding SearchBarVisibility}"
                                       VerticalContentAlignment="Center"
-                                     Style="{StaticResource SearchTextBoxStyle}"
+                                     Style="{StaticResource TextBoxStyle}"
                                 TextChanged="searchTextBox_TextChanged">
                                 <!---->
                             </TextBox>
@@ -585,7 +302,6 @@
 
                 </Grid>
             </Border>
-            <Button Click="Button_Click_1" Width="10" Height="10" VerticalAlignment="Top" ></Button>
             <Grid Grid.Column="1" x:Name="FileInfoAreaPlug" Margin="10,0,0,0">
                 <TextBlock Text="Выберите файл из списка"
                            FontFamily="Yu Gothic UI Semibold"

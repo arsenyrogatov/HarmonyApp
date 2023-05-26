@@ -19,7 +19,6 @@ namespace HarmonyApp.ViewModels
             _model.PropertyChanged += (s, e) => { RaisePropertyChanged(e.PropertyName); };
             _model.GetTags();
         }
-
         public string? FileName { get => _model?.FileName; set { _model.FileName = value; } }
         public string? TrackName { get => _model?.TrackName; set { _model.TrackName = value; } }
         public string? Artist { get => _model?.Artist; set { _model.Artist = value; } }
