@@ -1,7 +1,12 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Color x:Key="WindowBackgroundColor">#e7edf4</Color>
+    
     <Color x:Key="PanelsBackgroundColor">#e7edf4</Color>
+    <Color x:Key="PanelsBackgroundLight">#FFF7F8FB</Color>
+    
     <Color x:Key="PanelsShadowRight">#c4c9cf</Color>
     <Color x:Key="PanelsShadowLeft">#ffffff</Color>
+
+    <Color x:Key="TextLightColor">#888</Color>
 </ResourceDictionary>

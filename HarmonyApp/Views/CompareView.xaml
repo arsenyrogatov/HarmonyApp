@@ -71,8 +71,10 @@
                                     <Border Margin="5,0,0,0" 
                                                 Padding="10"
                                                 Width="400" 
-                                                Background="#FFF7F8FB"
                                                 CornerRadius="20">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{StaticResource PanelsBackgroundLight}"/>
+                                        </Border.Background>
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="100"/>
@@ -81,14 +83,19 @@
                                             <Border Margin="10,10,10,10" 
                                                                 HorizontalAlignment="Center" 
                                                                 VerticalAlignment="Top" 
-                                                                CornerRadius="10"
-                                                                Background="#FFF7F8FB">
+                                                                CornerRadius="10">
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="{StaticResource PanelsBackgroundLight}"/>
+                                                </Border.Background>
                                                 <Grid>
                                                     <TextBlock Text="Нет обложки"
                                                                            FontFamily="Yu Gothic UI Semibold"
-                                                                           Foreground="#888"
                                                                            VerticalAlignment="Center"
-                                                                           HorizontalAlignment="Center"/>
+                                                                           HorizontalAlignment="Center">
+                                                        <TextBlock.Foreground>
+                                                            <SolidColorBrush Color="{StaticResource TextLightColor}"/>
+                                                        </TextBlock.Foreground>
+                                                    </TextBlock>
                                                     <Border Width="80" Height="80" CornerRadius="10"
                                                                         BorderThickness="0.4"
                                                                         BorderBrush="Black">

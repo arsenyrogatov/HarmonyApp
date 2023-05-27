@@ -1,8 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Color x:Key="TextBoxBackgroundColor">#FFF7F8FB</Color>
-
     <Style x:Key="TextBoxStyle" TargetType="TextBox">
         <Setter Property="Template">
             <Setter.Value>
@@ -12,7 +10,7 @@
                                     CornerRadius="12"
                                     Padding="10,0,10,0">
                         <Border.Background>
-                            <SolidColorBrush Color="{StaticResource TextBoxBackgroundColor}"/>
+                            <SolidColorBrush Color="{StaticResource PanelsBackgroundLight}"/>
                         </Border.Background>
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" FontFamily="Yu Gothic UI Semibold"/>
