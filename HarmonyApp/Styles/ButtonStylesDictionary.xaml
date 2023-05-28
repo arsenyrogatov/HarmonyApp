@@ -15,6 +15,9 @@
     <Color x:Key="SearchButtonBackgroundColor1">#2BC016</Color>
     <Color x:Key="SearchButtonForegroundColor">#fff</Color>
 
+    <Color x:Key="DeleteFolderBackgroundColor">#EDEFF3</Color>
+    <Color x:Key="DeleteFolderPathColor">#FFFF4747</Color>
+
     <Style x:Key="ExtButtonStyle" TargetType="Button">
         <Setter Property="Template">
             <Setter.Value>

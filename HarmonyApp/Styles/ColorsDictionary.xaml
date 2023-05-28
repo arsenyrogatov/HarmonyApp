@@ -9,4 +9,7 @@
     <Color x:Key="PanelsShadowLeft">#ffffff</Color>
 
     <Color x:Key="TextLightColor">#888</Color>
+    <Color x:Key="TextDarkColor">#FF2F2F2F</Color>
+
+    <Color x:Key="DarkIconColor">#000</Color>
 </ResourceDictionary>

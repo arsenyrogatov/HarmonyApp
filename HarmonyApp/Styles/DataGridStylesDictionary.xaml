@@ -4,6 +4,7 @@
     <Color x:Key="DataGridForegroundColor">#888</Color>
     <Color x:Key="DataGridRowForegroundColor">#000</Color>
     <Color x:Key="DataGridRowBorderColor">#FFC5C5C5</Color>
+    <Color x:Key="DataGridSelectedRowBackgroundColor">#FFeff1f7</Color>
     
     <Style TargetType="DataGrid">
         <Setter Property="BorderThickness" Value="0" />

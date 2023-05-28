@@ -56,8 +56,10 @@
                            FontFamily="Yu Gothic UI Semibold" />
                     <Border Grid.Row="1" 
                             Margin="10,0,10,10"
-                            Background="#FFF7F8FB"
                             CornerRadius="15">
+                        <Border.Background>
+                            <SolidColorBrush Color="{StaticResource PanelsBackgroundLight}"/>
+                        </Border.Background>
                         <Grid>
                             <TextBlock Text="Папки не выбраны" 
                                        FontFamily="Yu Gothic UI Semibold"
@@ -85,7 +87,10 @@
                                 <DataGrid.Columns>
                                     <DataGridTemplateColumn IsReadOnly="True" Width="*">
                                         <DataGridTemplateColumn.Header>
-                                            <TextBlock Text="Путь" Height="25" Foreground="#FF8E8E8E">
+                                            <TextBlock Text="Путь" Height="25">
+                                                <TextBlock.Foreground>
+                                                    <SolidColorBrush Color="{StaticResource TextLightColor}"/>
+                                                </TextBlock.Foreground>
                                             </TextBlock>
                                         </DataGridTemplateColumn.Header>
                                         <DataGridTemplateColumn.CellTemplate>
@@ -93,8 +98,11 @@
                                                 <TextBlock VerticalAlignment="Center" 
                                                            Text="{Binding Path=Path, Mode=OneWay}" 
                                                            FontFamily="Source Sans Pro Semibold" 
-                                                           FontSize="13" 
-                                                           Foreground="#FF2F2F2F"></TextBlock>
+                                                           FontSize="13">
+                                                    <TextBlock.Foreground>
+                                                        <SolidColorBrush Color="{StaticResource TextDarkColor}"/>   
+                                                    </TextBlock.Foreground>
+                                                </TextBlock>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -108,10 +116,15 @@
                                                 Visibility="Hidden"
                                                 ToolTip="Удалить из списка">
                                                     <Button.Content>
-                                                        <Border Background="#EDEFF3" x:Name="crossback" Width="16" Height="16" CornerRadius="8">
+                                                        <Border x:Name="crossback" 
+                                                                Width="16" 
+                                                                Height="16" 
+                                                                CornerRadius="8">
+                                                            <Border.Background>
+                                                                <SolidColorBrush Color="{StaticResource DeleteFolderBackgroundColor}"/>
+                                                            </Border.Background>
                                                             <Canvas>
-                                                                <Path Stroke="#FFFF4747" 
-                                                                      x:Name="cross"
+                                                                <Path x:Name="cross"
                                                                       StrokeThickness="1.5" 
                                                                       Height="10" 
                                                                       Stretch="Fill" 
@@ -119,6 +132,9 @@
                                                                       HorizontalAlignment="Center" 
                                                                       VerticalAlignment="Center" 
                                                                       Margin="3,3,0,0">
+                                                                    <Path.Stroke>
+                                                                        <SolidColorBrush Color="{StaticResource DeleteFolderPathColor}"/>
+                                                                    </Path.Stroke>
                                                                     <Path.Data>
                                                                         <PathGeometry>
                                                                             <PathGeometry.Figures>
@@ -150,11 +166,11 @@
                                                                                                       Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
                                                                                                       Storyboard.TargetName="Border" 
                                                                                                       Duration="0:0:0.2">
-                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="#EDEFF3" />
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="{StaticResource DeleteFolderBackgroundColor}" />
                                                                         </ColorAnimationUsingKeyFrames>
                                                                         <ColorAnimationUsingKeyFrames Storyboard.Target="{Binding ElementName=cross}" 
                                                                                                       Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" Duration="0:0:0.2">
-                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FFFF4747" />
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="{StaticResource DeleteFolderPathColor}" />
                                                                         </ColorAnimationUsingKeyFrames>
                                                                     </Storyboard>
                                                                 </BeginStoryboard>
@@ -168,7 +184,7 @@
                                                                                                       Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)" 
                                                                                                       Storyboard.TargetName="Border" 
                                                                                                       Duration="0:0:0.2">
-                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FFFF4747" />
+                                                                            <EasingColorKeyFrame KeyTime="0:0:0.2" Value="{StaticResource DeleteFolderPathColor}" />
                                                                         </ColorAnimationUsingKeyFrames>
                                                                         <ColorAnimationUsingKeyFrames Storyboard.Target="{Binding ElementName=cross}" 
                                                                                                       Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" Duration="0:0:0.2">
