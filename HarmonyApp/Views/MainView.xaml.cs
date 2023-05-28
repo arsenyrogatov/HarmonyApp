@@ -68,14 +68,6 @@ namespace HarmonyApp.Views
             duplicates_DataGrid.ItemsSource = Itemlist;
         }
 
-        private void searchTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (searchTextBox.Visibility == Visibility.Visible && TextHint_label.Visibility == Visibility.Visible)
-            {
-                TextHint_label.Visibility = Visibility.Collapsed;
-            }
-        }
-
         private void searchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (searchTextBox is not null && TextHint_label is not null)
@@ -88,6 +80,28 @@ namespace HarmonyApp.Views
         {
             duplicates_DataGrid.Visibility = Visibility.Collapsed;
             duplicates_DataGrid.Visibility = Visibility.Visible;
+        }
+
+        private void TextHint_label_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            searchTextBox.Focus();
+            e.Handled = true;
+        }
+
+        private void searchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (searchTextBox.Visibility == Visibility.Visible && TextHint_label.Visibility == Visibility.Visible)
+            {
+                TextHint_label.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void searchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (searchTextBox.Text == "" || searchTextBox.Text == String.Empty)
+            {
+                TextHint_label.Visibility = Visibility.Visible;
+            }
         }
     }
 

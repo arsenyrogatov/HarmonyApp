@@ -100,9 +100,10 @@
                                     <Style TargetType="DataGridRow">
                                         <Setter Property="ContextMenu">
                                             <Setter.Value>
-                                                <ContextMenu>
+                                                <ContextMenu Style="{StaticResource ContextMenuStyle}">
                                                     <MenuItem Header="Сравнить дубликаты" 
                                                               Command="{Binding DataContext.CompareCurrent, Source={StaticResource proxy}}"/>
+                                                    <Separator/>
                                                     <MenuItem Header="Показать в проводнике" 
                                                               Command="{Binding DataContext.OpenSelectedFile, Source={StaticResource proxy}}"/>
                                                     <MenuItem Header="Удалить"
@@ -191,13 +192,14 @@
                             <ColumnDefinition Width="105"/>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
-                            <TextBox 
-                                     x:Name="searchTextBox"
+                            <TextBox x:Name="searchTextBox"
                                      FontFamily="Yu Gothic UI Semibold" 
                                      Visibility="{Binding SearchBarVisibility}"
-                                      VerticalContentAlignment="Center"
+                                     VerticalContentAlignment="Center"
                                      Style="{StaticResource TextBoxStyle}"
-                                TextChanged="searchTextBox_TextChanged">
+                                TextChanged="searchTextBox_TextChanged" 
+                                     GotFocus="searchTextBox_GotFocus" LostFocus="searchTextBox_LostFocus">
+                                
                             </TextBox>
                             <ProgressBar x:Name="Analysis_progressBar"
                                          Value="{Binding ProcessedFilesCount, Mode=OneWay}"
@@ -208,7 +210,7 @@
                                    FontFamily="Yu Gothic UI Semibold" 
                                    HorizontalContentAlignment="Left"
                                    Visibility="{Binding SearchBarVisibility}"
-                                   Margin="5,0,0,0">
+                                   Margin="5,0,0,0" MouseLeftButtonDown="TextHint_label_MouseLeftButtonDown">
                                 <Label.Foreground>
                                     <SolidColorBrush Color="{StaticResource SearchHintColor}"/>
                                 </Label.Foreground>
@@ -272,45 +274,20 @@
                                            FontFamily="Yu Gothic UI Semibold" Margin="0,-3,0,0"/>
                             </StackPanel>
                         </DockPanel>
-                        <Button Style="{StaticResource ActionButtonStyle}"
-                                Grid.Column="3"
-                                Width="95"
-                                VerticalContentAlignment="Center">
-                            <Button.Content>
-                                <Grid Height="Auto" Width="95">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition></ColumnDefinition>
-                                        <ColumnDefinition Width="20"></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Действия" HorizontalAlignment="Center" Margin="7,0,0,0"/>
-                                    <Canvas Grid.Column="1">
-                                        <Path>
-                                            <Path.Fill>
-                                                <SolidColorBrush Color="{StaticResource PanelsBackgroundLight}"/>
-                                            </Path.Fill>
-                                            <Path.Data>
-                                                <PathGeometry Figures="M4 6H11L7.5 10.5L4 6Z" />
-                                            </Path.Data>
-                                        </Path>
-                                    </Canvas>
-                                </Grid>
-                            </Button.Content>
-                            <Button.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Сохранить отчет" Command="{Binding CreateReport}"/>
-                                    <Separator></Separator>
-                                    <MenuItem Header="Выделить все" Command="{Binding SelectAll}"/>
-                                    <MenuItem Header="Отменить выделение" Command="{Binding CancelSelection}"/>
-                                    <MenuItem Header="Инверсировать выделение" Command="{Binding InverseSelection}"/>
-                                    <MenuItem Header="Выделить лучшие" Command="{Binding SelectBest}"/>
-                                    <MenuItem Header="Выделить худшие" Command="{Binding SelectWorst}"/>
-                                    <Separator></Separator>
-                                    <MenuItem Header="Переместить отмеченные" Command="{Binding MoveSelected}"/>
-                                    <MenuItem Header="Удалить отмеченные" Command="{Binding DeleteSelected}"/>
-                                    <MenuItem Header="Игнорировать отмеченные" Command="{Binding IgnoreSelected}"/>
-                                </ContextMenu>
-                            </Button.ContextMenu>
-                        </Button>
+                        <ComboBox Grid.Column="3" Width="95" IsTextSearchEnabled="False" Cursor="Hand">
+                            <MenuItem Header="Сохранить отчет" Command="{Binding CreateReport}"/>
+                            <Separator/>
+                            <MenuItem Header="Выделить все" Command="{Binding SelectAll}"/>
+                            <MenuItem Header="Отменить выделение" Command="{Binding CancelSelection}"/>
+                            <MenuItem Header="Инверсировать выделение" Command="{Binding InverseSelection}"/>
+                            <MenuItem Header="Выделить лучшие" Command="{Binding SelectBest}"/>
+                            <MenuItem Header="Выделить худшие" Command="{Binding SelectWorst}"/>
+                            <Separator/>
+                            <MenuItem Header="Переместить отмеченные" Command="{Binding MoveSelected}"/>
+                            <MenuItem Header="Удалить отмеченные" Command="{Binding DeleteSelected}"/>
+                            <MenuItem Header="Игнорировать отмеченные" Command="{Binding IgnoreSelected}"/>
+                        </ComboBox>
+
                     </Grid>
                 </Grid>
             </Border>

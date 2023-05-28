@@ -13,6 +13,8 @@
                 <ResourceDictionary Source="Styles\DataGridStylesDictionary.xaml"/>
                 <ResourceDictionary Source="Styles\ProgressBarStylesDictionary.xaml"/>
                 <ResourceDictionary Source="Styles\CheckBoxStylesDictionary.xaml"/>
+                <ResourceDictionary Source="Styles\ComboBoxStylesDictionary.xaml"/>
+                <ResourceDictionary Source="Styles\ContextMenuStylesDictionary.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
