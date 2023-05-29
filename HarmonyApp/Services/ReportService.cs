@@ -1,4 +1,5 @@
-﻿using HarmonyApp.Models;
+﻿using HarmonyApp.FolderProcessing;
+using HarmonyApp.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -15,11 +16,11 @@ namespace HarmonyApp.Services
             {
                 using StreamWriter writer = new(reportPath, true);
                 await writer.WriteLineAsync("Отчет о сканировании");
-                foreach (var path in SelectedFolders.Paths)
+                foreach (var path in FoldersContainer.Paths)
                 {
                     await writer.WriteLineAsync(path.Path);
                 }
-                await writer.WriteLineAsync($"Файлов отсканировано: {SelectedFolders.Paths.Sum(x => x.filesCount)}\n");
+                await writer.WriteLineAsync($"Файлов отсканировано: {FoldersContainer.Paths.Sum(x => x.filesCount)}\n");
 
                 await writer.WriteLineAsync($"Обнаружено дубликатов: {duplicates.Count}");
 

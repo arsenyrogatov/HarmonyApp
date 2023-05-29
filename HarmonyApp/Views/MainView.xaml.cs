@@ -103,6 +103,12 @@ namespace HarmonyApp.Views
                 TextHint_label.Visibility = Visibility.Visible;
             }
         }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Actions_ComboBox.IsDropDownOpen = false;
+            duplicates_DataGrid.UpdateLayout();
+        }
     }
 
 }

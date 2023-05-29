@@ -30,7 +30,6 @@ namespace HarmonyApp
                 {
                     Fingerprinting.InitilizeModelService();
                     ConsoleModel.ProcessArgs(e.Args);
-
                 }
                 Current.Shutdown();
             }

@@ -2,6 +2,8 @@
 using SoundFingerprinting.Builder;
 using SoundFingerprinting.Data;
 using SoundFingerprinting.Extensions.LMDB;
+using SoundFingerprinting.InMemory;
+using Spreads.LMDB;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +16,7 @@ namespace HarmonyApp.AudioProcessing
     public class Fingerprinting
     {
         private static LMDBModelService? modelService;
-        //public static InMemoryModelService InMemoryModelService = new InMemoryModelService();
+        //private static InMemoryModelService service = new();
         private static string? DbPath;
         private static readonly NAudioService audioService = new();
 
@@ -51,34 +53,56 @@ namespace HarmonyApp.AudioProcessing
                                                            .UsingServices(audioService)
                                                            .Hash();
             }
-            catch (Exception ex)
+            catch
             {
-                return null;
+                return AVHashes.Empty;
             }
         }
 
         public static async Task<SoundFingerprinting.Query.AVQueryResult?> CompareAVHashesAsync(AVHashes hashes)
         {
-
-            return await QueryCommandBuilder.Instance
-                                             .BuildQueryCommand()
-                                             .From(hashes)
-                                             .UsingServices(modelService)
-                                             .Query();
+            if (hashes.IsEmpty) 
+                return null;
+            else
+            {
+                SoundFingerprinting.Query.AVQueryResult? result = null;
+                try
+                {
+                    if (modelService is not null)
+                    result = await QueryCommandBuilder.Instance
+                                                     .BuildQueryCommand()
+                                                     .From(hashes)
+                                                     .UsingServices(modelService)
+                                                     //.UsingServices(service)
+                                                     .Query();
+                }
+                catch
+                {
+                    result = null;
+                }
+                return result;
+            }
         }
 
         public static void StoreAVHashes(string path, AVHashes hashes)
         {
-            //Console.WriteLine(InMemoryModelService.GetTrackIds().Count().ToString());
             var TrackId = path;
             var track = new TrackInfo(TrackId, String.Empty, String.Empty);
-            //modelService.Insert(track, hashes);
-            modelService.Insert(track, hashes);
+            if (modelService is not null)
+            try
+            {
+                modelService.Insert(track, hashes);
+            }
+            catch
+            {
+
+            }
+            //service.Insert(track, hashes);
         }
 
         public static void DisposeModelService()
         {
-            modelService.Dispose();
+            modelService?.Dispose();
 
             try
             {

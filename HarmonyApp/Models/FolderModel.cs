@@ -1,4 +1,5 @@
 ﻿using HarmonyApp.AudioProcessing;
+using HarmonyApp.FolderProcessing;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
@@ -14,33 +15,6 @@ using System.Windows;
 
 namespace HarmonyApp.Models
 {
-    public static class SelectedFolders
-    {
-        public static ObservableCollection<SelectedFolder> Paths = new();
-    }
-    public class SelectedFolder
-    {
-        public string Path { get; } //папка для сканирования
-        public bool IsRecursive { get; set; } //искать аудиозаписи в подпапках
-        public int filesCount; //количество файлов в папке
-
-        public SelectedFolder(string path)
-        {
-            Path = path;
-            IsRecursive = false;
-            CalculateFiles();
-        }
-
-        public void CalculateFiles()
-        {
-            filesCount = Directory.EnumerateFiles(Path, "*.*", new EnumerationOptions
-            {
-                IgnoreInaccessible = true,
-                RecurseSubdirectories = IsRecursive
-            }).Where(s => AudiofilesEnumerator.SupportedExtensions.Contains(System.IO.Path.GetExtension(s).ToLowerInvariant())).Count();
-        }
-    }
-
     public class FolderModel: BindableBase
     {
         public SelectedFolder? SelectedFolderItem { get; set; }
@@ -81,7 +55,7 @@ namespace HarmonyApp.Models
 
         public FolderModel()
         {
-            PublicFolders = new ReadOnlyObservableCollection<SelectedFolder>(SelectedFolders.Paths);
+            PublicFolders = new ReadOnlyObservableCollection<SelectedFolder>(FoldersContainer.Paths);
             ((System.Collections.Specialized.INotifyCollectionChanged)PublicFolders).CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(OnCollectionChanged);
             IsCollectionEmpty = true;
             FilesCount = "0";
@@ -96,28 +70,25 @@ namespace HarmonyApp.Models
 
         private void SumFilesCount() //посчитать сумму количеств файлов
         {
-            FilesCount = SelectedFolders.Paths.Sum(x => x.filesCount).ToString();
+            FilesCount = FoldersContainer.Paths.Sum(x => x.filesCount).ToString();
         }
 
         public void AddFolder(string folderPath) //добавление в коллекцию
         {
-            if (!SelectedFolders.Paths.Any(f => f.Path == folderPath))
-            {
-                SelectedFolders.Paths.Add(new SelectedFolder(folderPath));
-            }
+            FoldersContainer.Add(new SelectedFolder(folderPath));
         }
         
         public void DeleteSelectedFolder() //удаление из коллекции
         {
             if (SelectedFolderItem != null)
             {
-                SelectedFolders.Paths.Remove(SelectedFolders.Paths.First(x => x.Path == SelectedFolderItem.Path));
+                FoldersContainer.Paths.Remove(FoldersContainer.Paths.First(x => x.Path == SelectedFolderItem.Path));
             }
         }
 
         public void ClearCommand() //очистка коллекции
         {
-            SelectedFolders.Paths.Clear();
+            FoldersContainer.Paths.Clear();
         }
 
         public void CalculateSelectedFilesCount() //пересчитать количество файлов в текущей папке

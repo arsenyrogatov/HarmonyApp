@@ -274,20 +274,24 @@
                                            FontFamily="Yu Gothic UI Semibold" Margin="0,-3,0,0"/>
                             </StackPanel>
                         </DockPanel>
-                        <ComboBox Grid.Column="3" Width="95" IsTextSearchEnabled="False" Cursor="Hand">
-                            <MenuItem Header="Сохранить отчет" Command="{Binding CreateReport}"/>
+                        <ComboBox x:Name="Actions_ComboBox"
+                                  Grid.Column="3" 
+                                  Width="95" 
+                                  IsTextSearchEnabled="False" 
+                                  Cursor="Hand"
+                                  Visibility="{Binding SearchBarVisibility}">
+                            <MenuItem Header="Сохранить отчет" Command="{Binding CreateReport}" Click="MenuItem_Click"/>
                             <Separator/>
-                            <MenuItem Header="Выделить все" Command="{Binding SelectAll}"/>
-                            <MenuItem Header="Отменить выделение" Command="{Binding CancelSelection}"/>
-                            <MenuItem Header="Инверсировать выделение" Command="{Binding InverseSelection}"/>
-                            <MenuItem Header="Выделить лучшие" Command="{Binding SelectBest}"/>
-                            <MenuItem Header="Выделить худшие" Command="{Binding SelectWorst}"/>
+                            <MenuItem Header="Выделить все" Command="{Binding SelectAll}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Отменить выделение" Command="{Binding CancelSelection}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Инверсировать выделение" Command="{Binding InverseSelection}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Выделить лучшие" Command="{Binding SelectBest}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Выделить худшие" Command="{Binding SelectWorst}" Click="MenuItem_Click"/>
                             <Separator/>
-                            <MenuItem Header="Переместить отмеченные" Command="{Binding MoveSelected}"/>
-                            <MenuItem Header="Удалить отмеченные" Command="{Binding DeleteSelected}"/>
-                            <MenuItem Header="Игнорировать отмеченные" Command="{Binding IgnoreSelected}"/>
+                            <MenuItem Header="Переместить отмеченные" Command="{Binding MoveSelected}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Удалить отмеченные" Command="{Binding DeleteSelected}" Click="MenuItem_Click"/>
+                            <MenuItem Header="Игнорировать отмеченные" Command="{Binding IgnoreSelected}" Click="MenuItem_Click"/>
                         </ComboBox>
-
                     </Grid>
                 </Grid>
             </Border>

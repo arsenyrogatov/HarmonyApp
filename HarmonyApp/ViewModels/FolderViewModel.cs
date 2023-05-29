@@ -1,4 +1,5 @@
-﻿using HarmonyApp.Models;
+﻿using HarmonyApp.FolderProcessing;
+using HarmonyApp.Models;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;

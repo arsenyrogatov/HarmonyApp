@@ -12,6 +12,8 @@ using System.Windows.Data;
 using System.Windows.Forms;
 using HarmonyApp.ViewModels;
 using HarmonyApp.AudioProcessing;
+using SoundFingerprinting.Data;
+using HarmonyApp.FolderProcessing;
 
 namespace HarmonyApp.Models
 {
@@ -59,7 +61,7 @@ namespace HarmonyApp.Models
         public void StartScan()
         {
             List<Task> tasks = new();
-            foreach (var folder in SelectedFolders.Paths)
+            foreach (var folder in FoldersContainer.Paths)
             {
                 tasks.Add(GetAVHashes(folder.Path, folder.IsRecursive));
             }
@@ -151,10 +153,11 @@ namespace HarmonyApp.Models
         //получение хэшей
         private async Task GetAVHashes(string folderpath, bool isRecursive)
         {
-                await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(folderpath), options, async (filePath, token) =>
+                await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(folderpath, isRecursive), options, async (filePath, token) =>
                 {
+                    Console.WriteLine(filePath);
                     token.ThrowIfCancellationRequested();
-                    SoundFingerprinting.Data.AVHashes? hashes = null;
+                    SoundFingerprinting.Data.AVHashes hashes = AVHashes.Empty;
                     try
                     {
                         hashes = await Fingerprinting.GetAVHashesAsync(filePath);
@@ -165,13 +168,13 @@ namespace HarmonyApp.Models
                     }
 
                     token.ThrowIfCancellationRequested();
-                    if (hashes is not null)
+                    if (!hashes.IsEmpty)
                     {
                         Fingerprinting.StoreAVHashes(filePath, hashes);
 
                         SoundFingerprinting.Query.AVQueryResult? queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
 
-                        if (queryResult != null && queryResult.ResultEntries.Any())
+                        if (queryResult is not null && queryResult.ResultEntries.Any())
                         {
                             Audiofile parent = new(filePath);
                             List<Audiofile> matches = new();

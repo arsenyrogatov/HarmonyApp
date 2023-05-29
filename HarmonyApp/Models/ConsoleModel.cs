@@ -9,8 +9,8 @@ namespace HarmonyApp.Models
 {
     public static class ConsoleModel
     {
-        static string? scanPath;
-        static string? outputPath;
+        static string scanPath = "";
+        static string outputPath = "";
         static string? movePath;
         static bool isRemove;
         static bool isRecursive;
@@ -224,10 +224,10 @@ namespace HarmonyApp.Models
 
             if (isRemove)
             {
-                string response = "";
+                string? response = "";
                 if (!isConfirmationNotRequired)
                     Console.WriteLine($"Файлы ({badFiles.Count}) будут удалены. Продолжить? (Д\\Н)");
-                response = isConfirmationNotRequired ? "д" : Console.ReadLine().ToLower();
+                response = isConfirmationNotRequired ? "д" : Console.ReadLine()?.ToLower();
                 if (response == "д")
                 {
                     foreach (var audiofile in badFiles)
@@ -239,10 +239,10 @@ namespace HarmonyApp.Models
             }
             if (movePath is not null)
             {
-                string response = "";
+                string? response = "";
                 if (!isConfirmationNotRequired)
                     Console.WriteLine($"Файлы ({badFiles.Count}) будут перемещены в '{movePath}'. Продолжить? (Д\\Н)");
-                response = isConfirmationNotRequired ? "д" : Console.ReadLine().ToLower();
+                response = isConfirmationNotRequired ? "д" : Console.ReadLine()?.ToLower();
                 if (response == "д")
                 {
                     foreach (var audiofile in badFiles)
@@ -252,7 +252,6 @@ namespace HarmonyApp.Models
                     Console.WriteLine("Файлы перемещены!");
                 }
             }
-
             
             outputPath += outputPath.Last() == '\\' ? "" : "\\";
             outputPath += $"Гармония_сканирование_{DateTime.Now:dd.MM.yy}_{DateTime.Now:HH-mm}.txt";
