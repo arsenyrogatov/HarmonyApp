@@ -1,5 +1,6 @@
 ﻿using HarmonyApp.AudioProcessing;
 using HarmonyApp.Models;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -10,40 +11,42 @@ namespace HarmonyApp
     /// </summary>
     public partial class App : Application
     {
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            Fingerprinting.InitilizeModelService();
+        }
+
         private void Application_Exit(object sender, ExitEventArgs e)
         {
             Fingerprinting.DisposeModelService();
         }
 
         [DllImport("kernel32.dll")]
-        static extern bool AttachConsole(int dwProcessId);
-        private const int ATTACH_PARENT_PROCESS = -1;
+        static extern IntPtr GetConsoleWindow();
 
-        protected override void OnStartup(StartupEventArgs e)
+        [DllImport("user32.dll")]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
+
+        protected override async void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
-
             if (e.Args.Length > 0)
             {
-                AttachConsole(ATTACH_PARENT_PROCESS);
-                if (e.Args.Length > 0)
-                {
-                    Fingerprinting.InitilizeModelService();
-                    ConsoleModel.ProcessArgs(e.Args);
-                }
+                await ConsoleModel.ProcessArgs(e.Args);
+                Fingerprinting.DisposeModelService();
                 Current.Shutdown();
             }
             else
             {
+                var handle = GetConsoleWindow();
+                ShowWindow(handle, SW_HIDE);
+
+                base.OnStartup(e);
                 Views.FolderView folderView = new();
                 folderView.Show();
             }
         }
-
-        private void Application_Startup(object sender, StartupEventArgs e)
-        {
-            Fingerprinting.InitilizeModelService();
-        }
-
     }
 }

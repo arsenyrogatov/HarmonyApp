@@ -164,10 +164,7 @@ namespace HarmonyApp.Models
                 {
                     hashes = await Fingerprinting.GetAVHashesAsync(filePath);
                 }
-                catch (Exception ex)
-                {
-                    System.Windows.MessageBox.Show(ex.ToString());
-                }
+                catch { }
 
                 token.ThrowIfCancellationRequested();
                 if (!hashes.IsEmpty)

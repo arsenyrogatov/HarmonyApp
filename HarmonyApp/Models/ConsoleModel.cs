@@ -1,8 +1,10 @@
 ﻿using HarmonyApp.AudioProcessing;
+using SoundFingerprinting.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HarmonyApp.Models
@@ -16,6 +18,10 @@ namespace HarmonyApp.Models
         static bool isRecursive;
         static bool isConfirmationNotRequired;
 
+        static List<Audiofile> _matches = new();
+
+        static bool isArgsCorrect = true;
+
         private static void SetDefaultScanSettings()
         {
             isRecursive = false;
@@ -26,7 +32,7 @@ namespace HarmonyApp.Models
             isConfirmationNotRequired = false;
         }
 
-        public static async void ProcessArgs(string[] args)
+        public static async Task ProcessArgs(string[] args)
         {
             SetDefaultScanSettings();
             Console.WriteLine();
@@ -45,6 +51,7 @@ namespace HarmonyApp.Models
                     case "-d":
                     case "--dir":
                         {
+                            isArgsCorrect = false;
                             var scanPathIndex = i + 1;
                             if (args.Length <= scanPathIndex || args[scanPathIndex].StartsWith("-"))
                                 throw new ArgumentException("После аргумента --dir не указан путь к папке для сканирования");
@@ -59,6 +66,7 @@ namespace HarmonyApp.Models
                                 {
                                     outputPath = scanPath;
                                 }
+                                isArgsCorrect = true;
                             }
                         }
                         break;
@@ -69,6 +77,7 @@ namespace HarmonyApp.Models
                     case "-o":
                     case "--output":
                         {
+                            isArgsCorrect = false;
                             var outputPathIndex = i + 1;
                             if (args.Length <= outputPathIndex || args[outputPathIndex].StartsWith("-"))
                                 throw new ArgumentException("После аргумента --output не указан путь к папке для сохранения отчета");
@@ -79,12 +88,14 @@ namespace HarmonyApp.Models
                             {
                                 outputPath = args[outputPathIndex];
                                 i++;
+                                isArgsCorrect = true;
                             }
                         }
                         break;
                     case "-m":
                     case "--move":
                         {
+                            isArgsCorrect = false;
                             var movePathIndex = i + 1;
                             if (args.Length <= movePathIndex || args[movePathIndex].StartsWith("-"))
                                 throw new ArgumentException("После аргумента --move не указан путь к папке для перемещения дубликатов");
@@ -96,6 +107,7 @@ namespace HarmonyApp.Models
                                 movePath = args[movePathIndex];
                                 i++;
                                 isRemove = false;
+                                isArgsCorrect = true;
                             }
                         }
                         break;
@@ -110,6 +122,7 @@ namespace HarmonyApp.Models
                         break;
                     case "-h":
                     case "--help":
+                        isArgsCorrect = false;
                         Console.WriteLine("Параметры:");
                         Console.WriteLine("\t'-c'  или '--console'\tзапуск со стандартными параметрами");
                         Console.WriteLine("\t'-d'  или '--dir'\tпуть к директории, в которой необходимо произвести поиск дубликатов");
@@ -121,13 +134,15 @@ namespace HarmonyApp.Models
                         Console.WriteLine("\t'-h'  или '--help'\tотображение справки по использованию приложения");
                         break;
                     default:
+                        isArgsCorrect = false;
                         Console.WriteLine($"Неизвестный параметр [{arg}]");
                         Console.WriteLine($"Используйте параметр -h для отображения спавки по исользованию приложения");
                         break;
                 }
             }
 
-            await StartScanAsync();
+            if (isArgsCorrect)
+                await StartScanAsync();
         }
 
         private static void MoveFile(string startPath, string endPath)
@@ -142,97 +157,31 @@ namespace HarmonyApp.Models
             File.Delete(path);
         }
 
+        private static readonly object _matchesLock = new();
+
         private static async Task StartScanAsync()
         {
+            Fingerprinting.InitilizeModelService();
             Console.WriteLine($"Поиск дубликатов в {scanPath}");
-            var filesCount = Directory.EnumerateFiles(scanPath, "*.*", new EnumerationOptions
-            {
-                IgnoreInaccessible = true,
-                RecurseSubdirectories = isRecursive
-            }).Where(s => AudiofilesEnumerator.SupportedExtensions.Contains(System.IO.Path.GetExtension(s).ToLowerInvariant())).Count();
+            var filesCount = AudiofilesEnumerator.GetEnumerableFiles(scanPath, isRecursive).Count();
             Console.WriteLine($"Обнаружено {filesCount} музыкальных файлов\n");
 
-            List<Audiofile> audioFiles = new List<Audiofile>();
-            List<string> badFiles = new List<string>();
-            foreach (var file in AudiofilesEnumerator.GetEnumerableFiles(scanPath, isRecursive))
-            {
-                SoundFingerprinting.Data.AVHashes? hashes;
-                try
-                {
-                    Console.WriteLine(file);
-                    hashes = await Fingerprinting.GetAVHashesAsync(file);
-                    Console.WriteLine(file);
-                }
-                catch
-                {
-                    continue;
-                }
+            await GetAVHashes();
 
-                SoundFingerprinting.Query.AVQueryResult? queryResult;
-                try
-                {
-                    queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
-                }
-                catch
-                {
-                    continue;
-                }
-
-                if (queryResult != null && queryResult.ResultEntries.Any())
-                {
-                    List<Audiofile> duplicates = new();
-                    Audiofile parent = new(file);
-                    foreach (var (entry, _) in queryResult.ResultEntries.DistinctBy(x => x.TrackId))
-                    {
-                        if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d)
-                        {
-                            duplicates.Add(new Audiofile(entry.Track.Id, parent, entry));
-                        }
-                    }
-                    if (duplicates.Count > 0)
-                    {
-                        Console.WriteLine($"\n{parent._path}");
-                        var maxRating = duplicates.Max(x => x.RatingValue);
-                        maxRating = Math.Max(maxRating, parent.RatingValue);
-
-                        foreach (var audiofile in duplicates)
-                        {
-                            Console.WriteLine($"{audiofile._path}");
-                            if (audiofile.RatingValue != maxRating)
-                                badFiles.Add(audiofile._path);
-                        }
-                        if (parent.RatingValue != maxRating)
-                            badFiles.Add(parent._path);
-
-                        audioFiles.Add(parent);
-                        audioFiles.AddRange(duplicates);
-                    }
-                }
-
-                try
-                {
-                    Fingerprinting.StoreAVHashes(file, hashes);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return;
-                }
-            }
-
-            Console.WriteLine($"\nСканирование завершено! Найдено {audioFiles.Count} дубликатов");
+            Console.WriteLine($"\nСканирование завершено! Найдено {_matches.Count} дубликатов");
+            _matches.ForEach(x => Console.WriteLine(x.DisplayPath));
 
             if (isRemove)
             {
                 string? response = "";
                 if (!isConfirmationNotRequired)
-                    Console.WriteLine($"Файлы ({badFiles.Count}) будут удалены. Продолжить? (Д\\Н)");
+                    Console.WriteLine($"Файлы ({_matches.Count(x => x.IsSelected)}) будут удалены. Продолжить? (Д\\Н)");
                 response = isConfirmationNotRequired ? "д" : Console.ReadLine()?.ToLower();
                 if (response == "д")
                 {
-                    foreach (var audiofile in badFiles)
+                    foreach (var audiofile in _matches.Where(x => x.IsSelected))
                     {
-                        DeleteFile(audiofile);
+                        DeleteFile(audiofile._path);
                     }
                     Console.WriteLine("Файлы удалены!");
                 }
@@ -241,13 +190,13 @@ namespace HarmonyApp.Models
             {
                 string? response = "";
                 if (!isConfirmationNotRequired)
-                    Console.WriteLine($"Файлы ({badFiles.Count}) будут перемещены в '{movePath}'. Продолжить? (Д\\Н)");
+                    Console.WriteLine($"Файлы ({_matches.Count(x => x.IsSelected)}) будут перемещены в '{movePath}'. Продолжить? (Д\\Н)");
                 response = isConfirmationNotRequired ? "д" : Console.ReadLine()?.ToLower();
                 if (response == "д")
                 {
-                    foreach (var audiofile in badFiles)
+                    foreach (var audiofile in _matches.Where(x => x.IsSelected))
                     {
-                        MoveFile(audiofile, movePath);
+                        MoveFile(audiofile._path, movePath);
                     }
                     Console.WriteLine("Файлы перемещены!");
                 }
@@ -258,5 +207,65 @@ namespace HarmonyApp.Models
             Console.WriteLine($"Отчет сохранен в файл: {outputPath}");
         }
 
+        private static async Task GetAVHashes()
+        {
+            await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(scanPath, isRecursive), async (filePath, token) =>
+            {
+                Console.WriteLine($"Обработка {Path.GetFileName(filePath)}");
+                SoundFingerprinting.Data.AVHashes hashes = AVHashes.Empty;
+                try
+                {
+                    hashes = await Fingerprinting.GetAVHashesAsync(filePath);
+                }
+                catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+
+                if (!hashes.IsEmpty)
+                {
+                    Fingerprinting.StoreAVHashes(filePath, hashes);
+
+                    SoundFingerprinting.Query.AVQueryResult? queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
+
+                    if (queryResult is not null && queryResult.ResultEntries.Any())
+                    {
+                        Audiofile parent = new(filePath);
+                        List<Audiofile> matches = new();
+                        foreach (var (entry, _) in queryResult.ResultEntries)
+                        {
+                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
+                            {
+                                matches.Add(new(entry.Track.Id, parent, entry));
+                            }
+                        }
+
+                        if (matches.Any())
+                        {
+                            var AudiofilesToDelete = new List<Audiofile>();
+
+                            lock (_matchesLock)
+                            {
+                                var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
+                                if (duplicateParent is not null)
+                                {
+                                    AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
+                                    AudiofilesToDelete.Add(duplicateParent);
+                                }
+
+                                foreach (var audiofile in AudiofilesToDelete)
+                                    _matches.Remove(audiofile);
+
+                                var maxRating = matches.Max(x => x.RatingValue);
+                                maxRating = Math.Max(maxRating, parent.RatingValue);
+
+                                matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
+                                parent.IsSelected = parent.RatingValue != maxRating;
+
+                                _matches.Add(parent);
+                                _matches.AddRange(matches);
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 }
