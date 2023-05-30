@@ -1,11 +1,7 @@
-﻿using HarmonyApp.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HarmonyApp.FolderProcessing
 {
@@ -26,7 +22,7 @@ namespace HarmonyApp.FolderProcessing
             foldersToDelete.ForEach(x => Paths.Remove(x));
         }
 
-        public static bool Add (SelectedFolder folder)
+        public static bool Add(SelectedFolder folder)
         {
             if (Paths.Any(x => x.DirectoryInfo.FullName == folder.DirectoryInfo.FullName) || Paths.Any(x => x.DirectoryInfo.FullName.StartsWith(folder.DirectoryInfo.FullName, StringComparison.InvariantCulture) && x.IsRecursive))
                 return false;

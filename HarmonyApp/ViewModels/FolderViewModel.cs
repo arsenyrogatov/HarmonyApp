@@ -2,12 +2,7 @@
 using HarmonyApp.Models;
 using Prism.Commands;
 using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace HarmonyApp.ViewModels
@@ -18,7 +13,8 @@ namespace HarmonyApp.ViewModels
         public FolderViewModel()
         {
             _model.PropertyChanged += (s, e) => { RaisePropertyChanged(e.PropertyName); };
-            AddCommand = new DelegateCommand(() => {
+            AddCommand = new DelegateCommand(() =>
+            {
                 System.Windows.Forms.FolderBrowserDialog openFileDlg = new();
                 var result = openFileDlg.ShowDialog();
                 if (result == System.Windows.Forms.DialogResult.OK)
@@ -26,16 +22,20 @@ namespace HarmonyApp.ViewModels
                     _model.AddFolder(openFileDlg.SelectedPath);
                 }
             });
-            StartCommand = new DelegateCommand(() => {
+            StartCommand = new DelegateCommand(() =>
+            {
                 _model.StartScan();
             });
-            DeleteCommand = new DelegateCommand(() => {
+            DeleteCommand = new DelegateCommand(() =>
+            {
                 _model.DeleteSelectedFolder();
             });
-            ClearCommand = new DelegateCommand(() => {
+            ClearCommand = new DelegateCommand(() =>
+            {
                 _model.ClearCommand();
             });
-            CalculateFilesCount = new DelegateCommand(() => {
+            CalculateFilesCount = new DelegateCommand(() =>
+            {
                 _model.CalculateSelectedFilesCount();
             });
         }
@@ -47,7 +47,7 @@ namespace HarmonyApp.ViewModels
 
         public Visibility ClearButtonVisibility { get { return _model.IsCollectionEmpty ? Visibility.Collapsed : Visibility.Visible; } }
         public Visibility PlugVisibility { get { return _model.IsCollectionEmpty ? Visibility.Visible : Visibility.Collapsed; } }
-        
+
         public ReadOnlyObservableCollection<SelectedFolder> Folders => _model.PublicFolders;
         public SelectedFolder? SelectedFolderItem { get { return _model.SelectedFolderItem; } set { _model.SelectedFolderItem = value; } }
 

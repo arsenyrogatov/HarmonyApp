@@ -1,10 +1,7 @@
 ﻿using HarmonyApp.AudioProcessing;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HarmonyApp.FolderProcessing
 {
@@ -12,7 +9,7 @@ namespace HarmonyApp.FolderProcessing
     {
         public string Path { get { return DirectoryInfo.FullName; } } //папка для сканирования
         public bool IsRecursive { get { return _isRecursive; } set { _isRecursive = value; FolderProcessing.FoldersContainer.Update(); } } //искать аудиозаписи в подпапках
-        private bool  _isRecursive;
+        private bool _isRecursive;
         public int filesCount; //количество файлов в папке
 
         public DirectoryInfo DirectoryInfo { get; }

@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HarmonyApp.Services
 {
     internal static class MediaPlayerService
     {
-        internal static System.Windows.Controls.MediaElement MediaPlayer = new System.Windows.Controls.MediaElement() { UnloadedBehavior = System.Windows.Controls.MediaState.Manual};
+        internal static System.Windows.Controls.MediaElement MediaPlayer = new System.Windows.Controls.MediaElement() { UnloadedBehavior = System.Windows.Controls.MediaState.Manual };
         internal static bool IsPlaying = false;
         internal static string? Path;
 
-       
+
 
         internal static void Initialize(string filepath)
         {
@@ -30,7 +26,7 @@ namespace HarmonyApp.Services
 
         private static void Play()
         {
-            
+
             if (Path != null)
             {
                 MediaPlayer.Play();
@@ -40,7 +36,7 @@ namespace HarmonyApp.Services
 
         private static void Pause()
         {
-            
+
             if (Path != null)
             {
                 MediaPlayer.Pause();
@@ -51,7 +47,7 @@ namespace HarmonyApp.Services
         internal static void Stop()
         {
             if (Path != null)
-            MediaPlayer.Stop();
+                MediaPlayer.Stop();
             Path = null;
         }
     }

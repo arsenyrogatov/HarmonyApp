@@ -1,4 +1,8 @@
-﻿using Prism.Mvvm;
+﻿using HarmonyApp.AudioProcessing;
+using HarmonyApp.FolderProcessing;
+using HarmonyApp.ViewModels;
+using Prism.Mvvm;
+using SoundFingerprinting.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,10 +14,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Forms;
-using HarmonyApp.ViewModels;
-using HarmonyApp.AudioProcessing;
-using SoundFingerprinting.Data;
-using HarmonyApp.FolderProcessing;
 
 namespace HarmonyApp.Models
 {
@@ -21,7 +21,7 @@ namespace HarmonyApp.Models
     {
         private readonly CancellationTokenSource cancelTokenSource = new();
         public ObservableCollection<Audiofile> _matches;
-        private readonly object _matchesLock = new ();
+        private readonly object _matchesLock = new();
         private int processedFilesCount;
         private int _duplicatesCount;
         private readonly ParallelOptions options;
@@ -156,84 +156,83 @@ namespace HarmonyApp.Models
         //получение хэшей
         private async Task GetAVHashes(string folderpath, bool isRecursive)
         {
-                await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(folderpath, isRecursive), options, async (filePath, token) =>
+            await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(folderpath, isRecursive), options, async (filePath, token) =>
+            {
+                token.ThrowIfCancellationRequested();
+                SoundFingerprinting.Data.AVHashes hashes = AVHashes.Empty;
+                try
                 {
-                    token.ThrowIfCancellationRequested();
-                    SoundFingerprinting.Data.AVHashes hashes = AVHashes.Empty;
-                    try
-                    {
-                        hashes = await Fingerprinting.GetAVHashesAsync(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Windows.MessageBox.Show(ex.ToString());
-                    }
+                    hashes = await Fingerprinting.GetAVHashesAsync(filePath);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(ex.ToString());
+                }
 
-                    token.ThrowIfCancellationRequested();
-                    if (!hashes.IsEmpty)
+                token.ThrowIfCancellationRequested();
+                if (!hashes.IsEmpty)
+                {
+                    Fingerprinting.StoreAVHashes(filePath, hashes);
+
+                    SoundFingerprinting.Query.AVQueryResult? queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
+
+                    if (queryResult is not null && queryResult.ResultEntries.Any())
                     {
-                        Fingerprinting.StoreAVHashes(filePath, hashes);
-
-                        SoundFingerprinting.Query.AVQueryResult? queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
-
-                        if (queryResult is not null && queryResult.ResultEntries.Any())
+                        Audiofile parent = new(filePath);
+                        List<Audiofile> matches = new();
+                        foreach (var (entry, _) in queryResult.ResultEntries)
                         {
-                            Audiofile parent = new(filePath);
-                            List<Audiofile> matches = new();
-                            foreach (var (entry, _) in queryResult.ResultEntries)
+                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
                             {
-                                if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
-                                {
-                                    matches.Add(new(entry.Track.Id, parent, entry));
-                                }
+                                matches.Add(new(entry.Track.Id, parent, entry));
                             }
+                        }
 
-                            if (matches.Any())
+                        if (matches.Any())
+                        {
+                            var AudiofilesToDelete = new List<Audiofile>();
+
+                            lock (_matchesLock)
                             {
-                                var AudiofilesToDelete = new List<Audiofile>();
-
-                                lock (_matchesLock)
+                                var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
+                                if (duplicateParent is not null)
                                 {
-                                    var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
-                                    if (duplicateParent is not null)
-                                    {
-                                        AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
-                                        AudiofilesToDelete.Add(duplicateParent);
-                                    }
-
-                                    foreach (var audiofile in AudiofilesToDelete)
-                                        _matches.Remove(audiofile);
-
-                                    var maxRating = matches.Max(x => x.RatingValue);
-                                    maxRating = Math.Max(maxRating, parent.RatingValue);
-
-                                    matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
-                                    parent.IsSelected = parent.RatingValue != maxRating;
-
-                                    _matches.Add(parent);
-                                    _matches.AddRange(matches);
-                                    Parallel.Invoke(() =>
-                                    {
-                                        RaisePropertyChanged(nameof(_matches));
-                                        RaisePropertyChanged(nameof(DuplicatesSize));
-                                        RaisePropertyChanged("PlugVisibility");
-                                        RaisePropertyChanged("GridVisibility");
-                                    });
-
+                                    AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
+                                    AudiofilesToDelete.Add(duplicateParent);
                                 }
+
+                                foreach (var audiofile in AudiofilesToDelete)
+                                    _matches.Remove(audiofile);
+
+                                var maxRating = matches.Max(x => x.RatingValue);
+                                maxRating = Math.Max(maxRating, parent.RatingValue);
+
+                                matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
+                                parent.IsSelected = parent.RatingValue != maxRating;
+
+                                _matches.Add(parent);
+                                _matches.AddRange(matches);
+                                Parallel.Invoke(() =>
+                                {
+                                    RaisePropertyChanged(nameof(_matches));
+                                    RaisePropertyChanged(nameof(DuplicatesSize));
+                                    RaisePropertyChanged("PlugVisibility");
+                                    RaisePropertyChanged("GridVisibility");
+                                });
+
                             }
                         }
                     }
+                }
 
-                    token.ThrowIfCancellationRequested();
-                    Interlocked.Increment(ref processedFilesCount);
-                    RaisePropertyChanged(nameof(ProcessedFilesCount));
-                    RaisePropertyChanged("ProgressText");
-                    RaisePropertyChanged("ProgressCaption");
-                });
+                token.ThrowIfCancellationRequested();
+                Interlocked.Increment(ref processedFilesCount);
+                RaisePropertyChanged(nameof(ProcessedFilesCount));
+                RaisePropertyChanged("ProgressText");
+                RaisePropertyChanged("ProgressCaption");
+            });
 
         }
-
 
         public void CreateReport()
         {
@@ -359,7 +358,7 @@ namespace HarmonyApp.Models
 
         public void MoveSelected()
         {
-            FolderBrowserDialog dialog = new ();
+            FolderBrowserDialog dialog = new();
             dialog.UseDescriptionForTitle = true;
             dialog.Description = $"Выберите путь для перемещения выделенных файлов ({_matches.Count(x => x.IsSelected)})";
 

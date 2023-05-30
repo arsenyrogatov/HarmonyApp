@@ -19,7 +19,7 @@ namespace HarmonyApp.Windows
             Task.Run(() => LoadSpectrogramAsync());
         }
 
-        private async Task LoadSpectrogramAsync ()
+        private async Task LoadSpectrogramAsync()
         {
             System.Drawing.Bitmap? SpectrogramBitmap = await AudioProcessing.SpectrogramGenerator.GetSpectrogramAsync(AudiofilePath);
             await Dispatcher.InvokeAsync(() =>
@@ -42,7 +42,7 @@ namespace HarmonyApp.Windows
             if (ScaleSlider is not null && SpectrogramImage is not null && SpectrogramImage.Source is not null && SliderValue is not null)
             {
                 var ScaleRate = ScaleSlider.Value;
-                SliderValue.Text = ScaleRate.ToString("0.0")+"x";
+                SliderValue.Text = ScaleRate.ToString("0.0") + "x";
                 SpectrogramCanvas.Height = RenderCanvasSize.Height * ScaleRate;
                 SpectrogramCanvas.Width = RenderCanvasSize.Width * ScaleRate;
             }

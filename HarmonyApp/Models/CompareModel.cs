@@ -14,7 +14,7 @@ namespace HarmonyApp.Models
 
         public void Initilize(ObservableCollection<Audiofile> audiofiles)
         {
-            PublicAudiofiles = new (audiofiles);
+            PublicAudiofiles = new(audiofiles);
             RaisePropertyChanged(nameof(PublicAudiofiles));
         }
     }

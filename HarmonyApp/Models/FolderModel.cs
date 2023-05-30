@@ -1,24 +1,17 @@
-﻿using HarmonyApp.AudioProcessing;
-using HarmonyApp.FolderProcessing;
-using Prism.Commands;
+﻿using HarmonyApp.FolderProcessing;
 using Prism.Mvvm;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace HarmonyApp.Models
 {
-    public class FolderModel: BindableBase
+    public class FolderModel : BindableBase
     {
         public SelectedFolder? SelectedFolderItem { get; set; }
-      
+
         private int _filesCount;
         public string FilesCount //количество файлов
         {
@@ -33,7 +26,7 @@ namespace HarmonyApp.Models
                 else
                     _filesCount = int.Parse(value);
                 Audiofile.FilesCount = _filesCount;
-                
+
                 RaisePropertyChanged(nameof(FilesCount));
             }
         }
@@ -48,7 +41,7 @@ namespace HarmonyApp.Models
                 RaisePropertyChanged("ClearButtonVisibility");
                 RaisePropertyChanged("PlugVisibility");
             }
-        } 
+        }
 
         public readonly ReadOnlyObservableCollection<SelectedFolder> PublicFolders; //список папок для сканирования
         public int FoldersCount => PublicFolders.Count; //количество папок
@@ -77,7 +70,7 @@ namespace HarmonyApp.Models
         {
             FoldersContainer.Add(new SelectedFolder(folderPath));
         }
-        
+
         public void DeleteSelectedFolder() //удаление из коллекции
         {
             if (SelectedFolderItem != null)
@@ -94,13 +87,15 @@ namespace HarmonyApp.Models
         public void CalculateSelectedFilesCount() //пересчитать количество файлов в текущей папке
         {
             if (SelectedFolderItem != null)
-            { 
+            {
                 FilesCount = "-";
-                Task.Factory.StartNew(() => {
-                    SelectedFolderItem.CalculateFiles(); 
-                }).ContinueWith( (t) => {
+                Task.Factory.StartNew(() =>
+                {
+                    SelectedFolderItem.CalculateFiles();
+                }).ContinueWith((t) =>
+                {
                     SumFilesCount();
-                }); 
+                });
             }
         }
 

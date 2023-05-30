@@ -1,15 +1,11 @@
 ﻿using Prism.Commands;
 using Prism.Mvvm;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HarmonyApp
 {
-    public class Audiofile: BindableBase
+    public class Audiofile : BindableBase
     {
         public Audiofile? Parent;
         public static int FilesCount { get; set; }
@@ -176,23 +172,24 @@ namespace HarmonyApp
             }
             _audiofileTags.Dispose();
 
-            CreateSpectrogram = new DelegateCommand(() => {
+            CreateSpectrogram = new DelegateCommand(() =>
+            {
                 GetSpectrogram();
             });
         }
 
-        public void UpdateCheckedState (bool value)
+        public void UpdateCheckedState(bool value)
         {
             IsSelected = value;
             RaisePropertyChanged(nameof(IsSelected));
         }
 
-        public void InverseCheckedState ()
+        public void InverseCheckedState()
         {
             UpdateCheckedState(!IsSelected);
         }
 
-        public void UpdateTags (string newPath)
+        public void UpdateTags(string newPath)
         {
             _path = newPath;
             TagLib.File _audiofileTags = TagLib.File.Create(_path);

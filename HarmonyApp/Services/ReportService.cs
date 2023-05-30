@@ -1,5 +1,4 @@
 ﻿using HarmonyApp.FolderProcessing;
-using HarmonyApp.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;

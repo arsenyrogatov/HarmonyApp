@@ -15,58 +15,75 @@ namespace HarmonyApp.ViewModels
         public MainViewModel()
         {
             _model.PropertyChanged += (s, e) => { RaisePropertyChanged(e.PropertyName); };
-            CancelScan = new DelegateCommand(() => {
+            CancelScan = new DelegateCommand(() =>
+            {
                 _model.CancelScan();
             });
-            OpenSelectedFile = new DelegateCommand(() => { 
+            OpenSelectedFile = new DelegateCommand(() =>
+            {
                 _model.OpenSelectedFile();
             });
-            PlaySelectedFileInAssociatedApp = new DelegateCommand(() => {
+            PlaySelectedFileInAssociatedApp = new DelegateCommand(() =>
+            {
                 _model.PlaySelectedFileInAssociatedApp();
             });
-            EditSelectedFile = new DelegateCommand(() => {
+            EditSelectedFile = new DelegateCommand(() =>
+            {
                 _model.EditSelectedFile();
             });
-            CreateReport = new DelegateCommand(() => {
+            CreateReport = new DelegateCommand(() =>
+            {
                 _model.CreateReport();
             });
-            CompareCurrent = new DelegateCommand(() => {
+            CompareCurrent = new DelegateCommand(() =>
+            {
                 _model.CompareCurrent();
             });
-            DeleteSelectedFile = new DelegateCommand(() => {
+            DeleteSelectedFile = new DelegateCommand(() =>
+            {
                 _model.DeleteSelectedFile();
             });
-            MoveSelectedFile = new DelegateCommand(() => {
+            MoveSelectedFile = new DelegateCommand(() =>
+            {
                 _model.MoveSelectedFile();
             });
 
-            SelectAll = new DelegateCommand(() => {
+            SelectAll = new DelegateCommand(() =>
+            {
                 _model.SelectAll();
                 CollectionViewSource.GetDefaultView(AudiofileMatches);
             });
-            CancelSelection = new DelegateCommand(() => {
+            CancelSelection = new DelegateCommand(() =>
+            {
                 _model.CancelSelection();
                 CollectionViewSource.GetDefaultView(AudiofileMatches);
             });
-            InverseSelection = new DelegateCommand(() => {
+            InverseSelection = new DelegateCommand(() =>
+            {
                 _model.InverseSelection();
             });
-            SelectBest = new DelegateCommand(() => {
+            SelectBest = new DelegateCommand(() =>
+            {
                 _model.SelectBest();
             });
-            SelectWorst = new DelegateCommand(() => {
+            SelectWorst = new DelegateCommand(() =>
+            {
                 _model.SelectWorst();
             });
-            MoveSelected = new DelegateCommand(() => {
+            MoveSelected = new DelegateCommand(() =>
+            {
                 _model.MoveSelected();
             });
-            DeleteSelected = new DelegateCommand(() => {
+            DeleteSelected = new DelegateCommand(() =>
+            {
                 _model.DeleteSelected();
             });
-            IgnoreSelected = new DelegateCommand(() => {
+            IgnoreSelected = new DelegateCommand(() =>
+            {
                 _model.IgnoreSelected();
             });
-            UpdateDuplicatesSize = new DelegateCommand(() => {
+            UpdateDuplicatesSize = new DelegateCommand(() =>
+            {
                 // _model.UpdateDuplicatesSize();
                 RaisePropertyChanged(nameof(DuplicatesSize));
             });
@@ -106,7 +123,7 @@ namespace HarmonyApp.ViewModels
         public Visibility CurrentAudiofilePlugVisibility { get { return _model.CurrentAudiofile == null ? Visibility.Visible : Visibility.Collapsed; } }
         public Visibility CurrentAudiofileGridVisibility { get { return _model.CurrentAudiofile != null ? Visibility.Visible : Visibility.Collapsed; } }
 
-        public Audiofile? SelectedAudiofile { get { return _model.CurrentAudiofile; } set { _model.CurrentAudiofile = value; Services.MediaPlayerService.Stop();  RaisePropertyChanged(nameof(SelectedAudiofile));  RaisePropertyChanged(nameof(this.DuplicatesSize)); RaisePropertyChanged(nameof(MediaElementSource)); } }
-        public Uri MediaElementSource { get { return _model.CurrentAudiofile == null ? new Uri("", UriKind.RelativeOrAbsolute) : new Uri(_model.CurrentAudiofile._path); } }      
+        public Audiofile? SelectedAudiofile { get { return _model.CurrentAudiofile; } set { _model.CurrentAudiofile = value; Services.MediaPlayerService.Stop(); RaisePropertyChanged(nameof(SelectedAudiofile)); RaisePropertyChanged(nameof(this.DuplicatesSize)); RaisePropertyChanged(nameof(MediaElementSource)); } }
+        public Uri MediaElementSource { get { return _model.CurrentAudiofile == null ? new Uri("", UriKind.RelativeOrAbsolute) : new Uri(_model.CurrentAudiofile._path); } }
     }
 }

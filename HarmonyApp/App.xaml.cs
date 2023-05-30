@@ -35,7 +35,7 @@ namespace HarmonyApp
             }
             else
             {
-                Views.FolderView folderView = new ();
+                Views.FolderView folderView = new();
                 folderView.Show();
             }
         }

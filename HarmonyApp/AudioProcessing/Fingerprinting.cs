@@ -2,13 +2,8 @@
 using SoundFingerprinting.Builder;
 using SoundFingerprinting.Data;
 using SoundFingerprinting.Extensions.LMDB;
-using SoundFingerprinting.InMemory;
-using Spreads.LMDB;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HarmonyApp.AudioProcessing
@@ -61,7 +56,7 @@ namespace HarmonyApp.AudioProcessing
 
         public static async Task<SoundFingerprinting.Query.AVQueryResult?> CompareAVHashesAsync(AVHashes hashes)
         {
-            if (hashes.IsEmpty) 
+            if (hashes.IsEmpty)
                 return null;
             else
             {
@@ -69,12 +64,12 @@ namespace HarmonyApp.AudioProcessing
                 try
                 {
                     if (modelService is not null)
-                    result = await QueryCommandBuilder.Instance
-                                                     .BuildQueryCommand()
-                                                     .From(hashes)
-                                                     .UsingServices(modelService)
-                                                     //.UsingServices(service)
-                                                     .Query();
+                        result = await QueryCommandBuilder.Instance
+                                                         .BuildQueryCommand()
+                                                         .From(hashes)
+                                                         .UsingServices(modelService)
+                                                         //.UsingServices(service)
+                                                         .Query();
                 }
                 catch
                 {
@@ -89,14 +84,14 @@ namespace HarmonyApp.AudioProcessing
             var TrackId = path;
             var track = new TrackInfo(TrackId, String.Empty, String.Empty);
             if (modelService is not null)
-            try
-            {
-                modelService.Insert(track, hashes);
-            }
-            catch
-            {
+                try
+                {
+                    modelService.Insert(track, hashes);
+                }
+                catch
+                {
 
-            }
+                }
             //service.Insert(track, hashes);
         }
 
