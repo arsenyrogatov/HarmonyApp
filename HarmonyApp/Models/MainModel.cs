@@ -20,14 +20,13 @@ namespace HarmonyApp.Models
     public class MainModel : BindableBase, INotifyPropertyChanged
     {
         private readonly CancellationTokenSource cancelTokenSource = new();
-        //private ObservableCollection<Audiofile> _matches = new();
         public ObservableCollection<Audiofile> _matches;
         private readonly object _matchesLock = new ();
         private int processedFilesCount;
         private int _duplicatesCount;
         private readonly ParallelOptions options;
         private Audiofile? _currentAudiofile;
-        public bool isCompleted { get; private set; }
+        public bool IsCompleted { get; private set; }
 
         public Audiofile? CurrentAudiofile
         {
@@ -53,7 +52,7 @@ namespace HarmonyApp.Models
             _matches = new();
             //PublicMatches = new (_matches);
             //_matches.Add(new Audiofile(@"C:\Users\ARSENY\Music\parentfile.mp3"));
-            isCompleted = false;
+            IsCompleted = false;
             BindingOperations.EnableCollectionSynchronization(_matches, _matchesLock);
             StartScan();
         }
@@ -69,8 +68,8 @@ namespace HarmonyApp.Models
             {
                 Task.Factory.ContinueWhenAll(tasks.ToArray(), para =>
                 {
-                    isCompleted = true;
-                    RaisePropertyChanged(nameof(isCompleted));
+                    IsCompleted = true;
+                    RaisePropertyChanged(nameof(IsCompleted));
                     RaisePropertyChanged("ProgressText");
                     RaisePropertyChanged("ProgressCaption");
                     RaisePropertyChanged("SearchBarVisibility");
@@ -79,6 +78,7 @@ namespace HarmonyApp.Models
                 });
             }
         }
+
         public void PlaySelectedFileInAssociatedApp()
         {
             if (CurrentAudiofile == null || !File.Exists(CurrentAudiofile._path))
@@ -96,18 +96,21 @@ namespace HarmonyApp.Models
         }
         public void EditSelectedFile()
         {
-            Views.TagEditView tagEditView = new();
-            ((TagEditViewModel)tagEditView.DataContext).Initilize(CurrentAudiofile);
-            tagEditView.Closed += (s, e) =>
+            if (CurrentAudiofile is not null)
             {
-                var newPath = ((TagEditViewModel)tagEditView.DataContext)._model.newPath;
-                if (newPath is null)
+                Views.TagEditView tagEditView = new();
+                ((TagEditViewModel)tagEditView.DataContext).Initilize(CurrentAudiofile);
+                tagEditView.Closed += (s, e) =>
                 {
-                    newPath = CurrentAudiofile._path;
-                }
-                CurrentAudiofile.UpdateTags(newPath);
-            };
-            tagEditView.ShowDialog();
+                    var newPath = ((TagEditViewModel)tagEditView.DataContext)._model?.newPath;
+                    if (newPath is null)
+                    {
+                        newPath = CurrentAudiofile._path;
+                    }
+                    CurrentAudiofile.UpdateTags(newPath);
+                };
+                tagEditView.ShowDialog();
+            }
         }
         public void OpenSelectedFile()
         {
@@ -155,7 +158,6 @@ namespace HarmonyApp.Models
         {
                 await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(folderpath, isRecursive), options, async (filePath, token) =>
                 {
-                    Console.WriteLine(filePath);
                     token.ThrowIfCancellationRequested();
                     SoundFingerprinting.Data.AVHashes hashes = AVHashes.Empty;
                     try
@@ -251,8 +253,9 @@ namespace HarmonyApp.Models
                 List<Audiofile> compareableAudiofiles = new();
                 if (CurrentAudiofile.IsChild)
                 {
-                    compareableAudiofiles.Add(CurrentAudiofile.Parent);
-                    compareableAudiofiles.AddRange(_matches.Where(x => x.Parent?._path == CurrentAudiofile.Parent._path));
+                    if (CurrentAudiofile.Parent is not null)
+                        compareableAudiofiles.Add(CurrentAudiofile.Parent);
+                    compareableAudiofiles.AddRange(_matches.Where(x => x.Parent?._path == CurrentAudiofile.Parent?._path));
                 }
                 else
                 {
@@ -269,8 +272,8 @@ namespace HarmonyApp.Models
         public void CancelScan()
         {
             cancelTokenSource.Cancel();
-            isCompleted = true;
-            RaisePropertyChanged(nameof(isCompleted));
+            IsCompleted = true;
+            RaisePropertyChanged(nameof(IsCompleted));
             RaisePropertyChanged("ProgressText");
             RaisePropertyChanged("ProgressCaption");
         }
@@ -280,82 +283,78 @@ namespace HarmonyApp.Models
         {
             foreach (Audiofile audiofile in _matches)
             {
-                audiofile.IsSelected = true;
-                RaisePropertyChanged(nameof(audiofile.IsSelected));
+                audiofile.UpdateCheckedState(true);
             }
             RaisePropertyChanged(nameof(_matches));
+            RaisePropertyChanged(nameof(DuplicatesSize));
         }
 
         public void CancelSelection()
         {
             foreach (Audiofile audiofile in _matches)
             {
-                audiofile.IsSelected = false;
-                RaisePropertyChanged(nameof(audiofile.IsSelected));
+                audiofile.UpdateCheckedState(false);
             }
             RaisePropertyChanged(nameof(_matches));
+            RaisePropertyChanged(nameof(DuplicatesSize));
         }
 
         public void InverseSelection()
         {
             foreach (Audiofile audiofile in _matches)
             {
-                audiofile.IsSelected = !audiofile.IsSelected;
-                RaisePropertyChanged(nameof(audiofile.IsSelected));
+                audiofile.InverseCheckedState();
             }
             RaisePropertyChanged(nameof(_matches));
+            RaisePropertyChanged(nameof(DuplicatesSize));
         }
 
         public void SelectBest()
         {
-            List<string> processedFiles = new();
-            foreach (Audiofile audiofile in _matches)
+            if (_matches.Count > 0)
             {
-                if (processedFiles.Contains(audiofile._path))
-                    continue;
-
-                Audiofile parent;
-                List<Audiofile> children = new();
-
-                if (audiofile.IsChild)
-                    parent = audiofile.Parent;
-                else
-                    parent = audiofile;
-                children.AddRange(_matches.Where(x => x.Parent._path == parent._path));
-                children.Add(parent);
-
-                var maxRating = children.Max(x => x.RatingValue);
-
-                children.ForEach(x => { x.IsSelected = x.RatingValue == maxRating; RaisePropertyChanged(nameof(x.IsSelected)); });
-                processedFiles.AddRange(children.Select(x => x._path));
+                List<Audiofile> filesToCompare = new();
+                filesToCompare.Add(_matches[0]);
+                double maxRating;
+                for (int i = 1; i < _matches.Count; i++)
+                {
+                    if (!_matches[i].IsChild)
+                    {
+                        maxRating = filesToCompare.Max(x => x.RatingValue);
+                        filesToCompare.ForEach(x => x.UpdateCheckedState(x.RatingValue == maxRating));
+                        filesToCompare.Clear();
+                    }
+                    filesToCompare.Add(_matches[i]);
+                }
+                maxRating = filesToCompare.Max(x => x.RatingValue);
+                filesToCompare.ForEach(x => x.UpdateCheckedState(x.RatingValue == maxRating));
+                RaisePropertyChanged(nameof(_matches));
+                RaisePropertyChanged(nameof(DuplicatesSize));
             }
-            RaisePropertyChanged(nameof(_matches));
         }
 
         public void SelectWorst()
         {
-            List<string> processedFiles = new();
-            foreach (Audiofile audiofile in _matches)
+            if (_matches.Count > 0)
             {
-                if (processedFiles.Contains(audiofile._path))
-                    continue;
-
-                Audiofile parent;
-                List<Audiofile> children = new();
-
-                if (audiofile.IsChild)
-                    parent = audiofile.Parent;
-                else
-                    parent = audiofile;
-                children.AddRange(_matches.Where(x => x.Parent._path == parent._path));
-                children.Add(parent);
-
-                var maxRating = children.Max(x => x.RatingValue);
-
-                children.ForEach(x => { x.IsSelected = x.RatingValue != maxRating; RaisePropertyChanged(nameof(x.IsSelected)); });
-                processedFiles.AddRange(children.Select(x => x._path));
+                List<Audiofile> filesToCompare = new();
+                filesToCompare.Add(_matches[0]);
+                double maxRating;
+                for (int i = 1; i < _matches.Count; i++)
+                {
+                    if (!_matches[i].IsChild)
+                    {
+                        maxRating = filesToCompare.Max(x => x.RatingValue);
+                        filesToCompare.ForEach(x => x.UpdateCheckedState(x.RatingValue != maxRating));
+                        filesToCompare.Clear();
+                    }
+                    filesToCompare.Add(_matches[i]);
+                }
+                maxRating = filesToCompare.Max(x => x.RatingValue);
+                filesToCompare.ForEach(x => x.UpdateCheckedState(x.RatingValue != maxRating));
+                RaisePropertyChanged(nameof(_matches));
+                RaisePropertyChanged(nameof(DuplicatesSize));
             }
-            RaisePropertyChanged(nameof(_matches));
         }
 
         public void MoveSelected()
@@ -368,7 +367,7 @@ namespace HarmonyApp.Models
             {
                 foreach (Audiofile audiofile in _matches.Where(x => x.IsSelected).ToList())
                 {
-                    if (audiofile == null || !File.Exists(audiofile._path))
+                    if (!File.Exists(audiofile._path))
                     {
                         _matches.Remove(audiofile);
                     }
@@ -397,7 +396,7 @@ namespace HarmonyApp.Models
             {
                 foreach (Audiofile audiofile in _matches.Where(x => x.IsSelected).ToList())
                 {
-                    if (audiofile == null || !File.Exists(audiofile._path))
+                    if (!File.Exists(audiofile._path))
                     {
                         _matches.Remove(audiofile);
                     }

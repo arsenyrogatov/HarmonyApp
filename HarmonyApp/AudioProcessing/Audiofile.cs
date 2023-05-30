@@ -15,7 +15,7 @@ namespace HarmonyApp
         public static int FilesCount { get; set; }
 
         public bool IsChild { get; }
-        public bool IsSelected { get { return _isSelected; } set { _isSelected = value; RaisePropertyChanged("DuplicatesSize"); } }
+        public bool IsSelected { get { return _isSelected; } set { _isSelected = value; RaisePropertyChanged(nameof(IsSelected)); } }
         private bool _isSelected = false;
 
         public string DisplayPath { get { return IsChild ? $"       {_path}" : _path; } }
@@ -179,6 +179,17 @@ namespace HarmonyApp
             CreateSpectrogram = new DelegateCommand(() => {
                 GetSpectrogram();
             });
+        }
+
+        public void UpdateCheckedState (bool value)
+        {
+            IsSelected = value;
+            RaisePropertyChanged(nameof(IsSelected));
+        }
+
+        public void InverseCheckedState ()
+        {
+            UpdateCheckedState(!IsSelected);
         }
 
         public void UpdateTags (string newPath)

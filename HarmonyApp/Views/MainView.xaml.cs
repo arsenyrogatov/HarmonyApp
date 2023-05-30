@@ -107,7 +107,16 @@ namespace HarmonyApp.Views
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             Actions_ComboBox.IsDropDownOpen = false;
-            duplicates_DataGrid.UpdateLayout();
+        }
+        private void duplicates_DataGrid_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            duplicates_DataGrid.CommitEdit();
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            //((CheckBox)sender)
+            duplicates_DataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
         }
     }
 

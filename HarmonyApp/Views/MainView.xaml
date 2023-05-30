@@ -3,12 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:system="clr-namespace:System;assembly=mscorlib"
-        xmlns:local="clr-namespace:HarmonyApp"
         xmlns:v="clr-namespace:HarmonyApp.ViewModels"
         xmlns:p="clr-namespace:HarmonyApp.Proxy"
         xmlns:c="clr-namespace:HarmonyApp.Converters"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Гармония" 
         Height="600" 
@@ -92,7 +89,7 @@
                                         RowHeight="28"
                                         ItemsSource="{Binding AudiofileMatches, Mode=OneWay}" 
                                       SelectedItem="{Binding SelectedAudiofile, Mode=OneWayToSource}"
-                                      CellStyle="{StaticResource Body_Content_DataGrid_Centering}">
+                                      CellStyle="{StaticResource Body_Content_DataGrid_Centering}" MouseUp="duplicates_DataGrid_MouseUp">
                                 <DataGrid.Resources>
                                     <Style TargetType="ScrollBar" BasedOn="{StaticResource ScrollBarStyle}"/>
                                 </DataGrid.Resources>
@@ -150,9 +147,16 @@
                                     </Style>
                                 </DataGrid.RowStyle>
                                 <DataGrid.Columns>
-                                    <DataGridCheckBoxColumn Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                            ElementStyle="{StaticResource CheckBoxColumnStyle}"
-                                                            CanUserResize="False"/>
+                                    <DataGridTemplateColumn CanUserReorder="False" CanUserResize="False" CanUserSort="False">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              Style="{StaticResource CheckBoxColumnStyle}" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked" Command="{Binding DataContext.UpdateDuplicatesSize, Source={StaticResource proxy}}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTemplateColumn Header="Файл">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>

@@ -4,6 +4,7 @@ using Prism.Mvvm;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Data;
 
 namespace HarmonyApp.ViewModels
 {
@@ -41,9 +42,11 @@ namespace HarmonyApp.ViewModels
 
             SelectAll = new DelegateCommand(() => {
                 _model.SelectAll();
+                CollectionViewSource.GetDefaultView(AudiofileMatches);
             });
             CancelSelection = new DelegateCommand(() => {
                 _model.CancelSelection();
+                CollectionViewSource.GetDefaultView(AudiofileMatches);
             });
             InverseSelection = new DelegateCommand(() => {
                 _model.InverseSelection();
@@ -62,6 +65,10 @@ namespace HarmonyApp.ViewModels
             });
             IgnoreSelected = new DelegateCommand(() => {
                 _model.IgnoreSelected();
+            });
+            UpdateDuplicatesSize = new DelegateCommand(() => {
+                // _model.UpdateDuplicatesSize();
+                RaisePropertyChanged(nameof(DuplicatesSize));
             });
         }
         public DelegateCommand CancelScan { get; }
@@ -85,7 +92,7 @@ namespace HarmonyApp.ViewModels
 
         public int AllFilesCount { get { return Audiofile.FilesCount; } }
         public int ProcessedFilesCount => _model.ProcessedFilesCount;
-        public bool IsCompleted => _model.isCompleted;
+        public bool IsCompleted => _model.IsCompleted;
         public string ProgressText { get { return $"Обработка файлов ({ProcessedFilesCount}/{AllFilesCount})"; } }
         public string ProgressCaption { get { return IsCompleted ? "Сканирование завершено!" : $"Сканирование..."; } }
         public int DuplicatesCount { get { return _model.DuplicatesCount; } }
