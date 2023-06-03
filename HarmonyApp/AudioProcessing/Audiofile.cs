@@ -314,5 +314,12 @@ namespace HarmonyApp
             Windows.SpectrogramWindow spectrogramWindow = new(this);
             spectrogramWindow.Show();
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Audiofile audiofile) return _path == audiofile._path;
+            return false;
+        }
+        public override int GetHashCode() => _path.GetHashCode();
     }
 }

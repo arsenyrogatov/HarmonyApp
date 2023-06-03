@@ -83,47 +83,6 @@ namespace HarmonyApp.AudioProcessing
             }
         }
 
-        public static async Task<List<Audiofile>> CompareStored()
-        {
-            List<Audiofile> matches = new();
-            if (modelService is not null)
-            {
-                foreach (var id in modelService.GetTrackIds())
-                {
-                    Console.WriteLine($"-{id}");
-                    var queryResult = await CompareAVHashesAsync(modelService.ReadHashesByTrackId(id));
-                    if (queryResult is not null && queryResult.ResultEntries.Any())
-                    {
-
-                        Console.WriteLine($"+{id}");
-                        if (matches.Any(x => queryResult.ResultEntries.ToList().Select(y => y.TrackId).Contains(x._path)))
-                        {
-
-                            Console.WriteLine($">{id}");
-                            for (int i = 0; i < matches.Count; i++)
-                            {
-                                if (queryResult.ResultEntries.Any(x => matches[i]._path == x.TrackId))
-                                {
-                                    Console.Write($"\tRemoved {matches[i]._path}");
-                                    matches.RemoveAt(i);
-                                }
-                            }
-                        }
-                        var parent = new Audiofile(id);
-                        matches.Add(parent);
-                        foreach (var (entry, _) in queryResult.ResultEntries)
-                        {
-                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != id && !matches.Any(x => x._path == entry.Track.Id))
-                            {
-                                matches.Add(new(entry.Track.Id, parent, entry));
-                            }
-                        }
-                    }
-                }
-            }
-            return matches;
-        }
-
         public static void StoreAVHashes(string path, AVHashes hashes)
         {
             var TrackId = path;

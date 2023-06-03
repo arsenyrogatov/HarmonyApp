@@ -191,16 +191,23 @@ namespace HarmonyApp.Models
 
                             lock (_matchesLock)
                             {
-                                var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
-                                if (duplicateParent is not null)
+                                foreach (var match in matches)
                                 {
-                                    AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
-                                    AudiofilesToDelete.Add(duplicateParent);
-                                }
+                                    var computedParent = _matches.FirstOrDefault(x => x == match && !x.IsChild);
 
-                                if (AudiofilesToDelete.Count() < matches.Count())
-                                foreach (var audiofile in AudiofilesToDelete)
-                                    _matches.Remove(audiofile);
+                                    if (computedParent is not null)
+                                    {
+                                        var computedChildren = _matches.Where(x => !x.IsChild && x.Parent == computedParent).ToList();
+                                        if (computedChildren.Count > 0 && computedChildren.Intersect(matches).Count() == computedChildren.Count)
+                                        {
+                                            AudiofilesToDelete.AddRange(computedChildren);
+                                            AudiofilesToDelete.Add(parent);
+                                        }
+                                    }
+                                }
+                                if (AudiofilesToDelete.Count < matches.Count)
+                                    foreach (var audiofile in AudiofilesToDelete)
+                                        _matches.Remove(audiofile);
 
                                 var maxRating = matches.Max(x => x.RatingValue);
                                 maxRating = Math.Max(maxRating, parent.RatingValue);
