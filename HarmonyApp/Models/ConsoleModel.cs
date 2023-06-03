@@ -167,6 +167,7 @@ namespace HarmonyApp.Models
             Console.WriteLine($"Обнаружено {filesCount} музыкальных файлов\n");
 
             await GetAVHashes();
+            await CompareHashes();
 
             Console.WriteLine($"\nСканирование завершено! Найдено {_matches.Count} дубликатов");
             _matches.ForEach(x => Console.WriteLine(x.DisplayPath));
@@ -207,6 +208,11 @@ namespace HarmonyApp.Models
             Console.WriteLine($"Отчет сохранен в файл: {outputPath}");
         }
 
+        private static async Task CompareHashes()
+        {
+            _matches = await Fingerprinting.CompareStored();
+        }
+
         private static async Task GetAVHashes()
         {
             await Parallel.ForEachAsync(AudiofilesEnumerator.GetEnumerableFiles(scanPath, isRecursive), async (filePath, token) =>
@@ -222,48 +228,6 @@ namespace HarmonyApp.Models
                 if (!hashes.IsEmpty)
                 {
                     Fingerprinting.StoreAVHashes(filePath, hashes);
-
-                    SoundFingerprinting.Query.AVQueryResult? queryResult = await Fingerprinting.CompareAVHashesAsync(hashes);
-
-                    if (queryResult is not null && queryResult.ResultEntries.Any())
-                    {
-                        Audiofile parent = new(filePath);
-                        List<Audiofile> matches = new();
-                        foreach (var (entry, _) in queryResult.ResultEntries)
-                        {
-                            if (entry != null && entry.TrackCoverageWithPermittedGapsLength >= 5d && entry.Track.Id != filePath && !matches.Any(x => x._path == entry.Track.Id))
-                            {
-                                matches.Add(new(entry.Track.Id, parent, entry));
-                            }
-                        }
-
-                        if (matches.Any())
-                        {
-                            var AudiofilesToDelete = new List<Audiofile>();
-
-                            lock (_matchesLock)
-                            {
-                                var duplicateParent = _matches.Where(x => matches.Any(y => (y._path == x._path || y._path == filePath) && x.IsChild == false)).FirstOrDefault();
-                                if (duplicateParent is not null)
-                                {
-                                    AudiofilesToDelete.AddRange(_matches.Where(x => x.Parent == duplicateParent).ToList());
-                                    AudiofilesToDelete.Add(duplicateParent);
-                                }
-
-                                foreach (var audiofile in AudiofilesToDelete)
-                                    _matches.Remove(audiofile);
-
-                                var maxRating = matches.Max(x => x.RatingValue);
-                                maxRating = Math.Max(maxRating, parent.RatingValue);
-
-                                matches.ForEach(x => x.IsSelected = x.RatingValue != maxRating);
-                                parent.IsSelected = parent.RatingValue != maxRating;
-
-                                _matches.Add(parent);
-                                _matches.AddRange(matches);
-                            }
-                        }
-                    }
                 }
             });
         }

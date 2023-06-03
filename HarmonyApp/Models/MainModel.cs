@@ -198,6 +198,7 @@ namespace HarmonyApp.Models
                                     AudiofilesToDelete.Add(duplicateParent);
                                 }
 
+                                if (AudiofilesToDelete.Count() < matches.Count())
                                 foreach (var audiofile in AudiofilesToDelete)
                                     _matches.Remove(audiofile);
 
