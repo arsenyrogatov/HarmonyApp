@@ -246,7 +246,7 @@ namespace HarmonyApp.Models
             if (result == DialogResult.OK)
             {
                 var fileName = "Гармония_сканирование_" + DateTime.Now.ToString("dd.MM.yy") + "_" + DateTime.Now.ToString("HH-mm") + ".txt";
-                Services.ReportService.SaveReport(System.IO.Path.Combine(dialog.SelectedPath, fileName), _matches);
+                Services.ReportService.SaveReport(System.IO.Path.Combine(dialog.SelectedPath, fileName), _matches.ToList());
             }
         }
 

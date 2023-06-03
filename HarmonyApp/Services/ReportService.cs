@@ -1,5 +1,7 @@
 ﻿using HarmonyApp.FolderProcessing;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -9,7 +11,7 @@ namespace HarmonyApp.Services
 {
     public static class ReportService
     {
-        public async static void SaveReport(string reportPath, ObservableCollection<Audiofile> duplicates)
+        public async static void SaveReport(string reportPath, List<Audiofile> duplicates)
         {
             try
             {

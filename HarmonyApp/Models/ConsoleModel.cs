@@ -204,6 +204,7 @@ namespace HarmonyApp.Models
 
             outputPath += outputPath.Last() == '\\' ? "" : "\\";
             outputPath += $"Гармония_сканирование_{DateTime.Now:dd.MM.yy}_{DateTime.Now:HH-mm}.txt";
+            Services.ReportService.SaveReport(outputPath, _matches);
             Console.WriteLine($"Отчет сохранен в файл: {outputPath}");
         }
 
