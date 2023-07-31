@@ -15,10 +15,13 @@ c# .NET 6 MVVM
 
 Запуск в режиме графического интерфейса: 
 ![main](https://github.com/arsenyrogatov/HarmonyApp/assets/89843046/55b41b0b-f643-4bee-9300-d0f0f023e8cb)
+
 Выбор директорий для поиска дубликатов
 
 ![scanresult](https://github.com/arsenyrogatov/HarmonyApp/assets/89843046/4a83e7e2-f57c-4e7c-b8f5-577daf72fc4f)
+
 Найденные дубликаты
 
 ![spectrogram](https://github.com/arsenyrogatov/HarmonyApp/assets/89843046/f8853c55-da8b-4b19-b94e-5acd4f8f8a08)
+
 Просмотр спектрограммы для музыкального файла
